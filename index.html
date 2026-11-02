@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="fr" data-public="oui">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1530">
+  <title>Les voix du Faso : Contes, légendes et mémoires du Burkina Faso</title>
+  <meta name="description" content="Carte interactive des contes, légendes et récits historiques du Burkina Faso : 17 régions, 47 chefs-lieux, récits illustrés et carte interactive.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Lexend:wght@200..700&family=Noto+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  <script>
+    /* Le chargement ne se joue qu'une fois par visite, et jamais si le visiteur demande moins de mouvement. */
+    (function () {
+      var racine = document.documentElement;
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      racine.classList.add('motion');
+      try { if (sessionStorage.getItem('voix-vu')) return; sessionStorage.setItem('voix-vu', '1'); } catch (e) { return; }
+      racine.classList.add('avec-chargement');
+    })();
+  </script>
+  <script type="module" src="/application.js"></script>
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <pattern id="p-points" width="12" height="12" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.3" fill="#0d1830"/><circle cx="9" cy="9" r="1.3" fill="#0d1830"/></pattern>
+      <pattern id="p-hachures" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 V8" stroke="#0d1830" stroke-width="1.5"/></pattern>
+      <pattern id="p-croix" width="16" height="16" patternUnits="userSpaceOnUse"><path d="M4 8 H12 M8 4 V12" stroke="#0d1830" stroke-width="1.5"/></pattern>
+      <pattern id="p-losanges" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M7 1 L13 7 L7 13 L1 7Z" fill="none" stroke="#0d1830" stroke-width="1.2"/></pattern>
+      <pattern id="p-fani" width="22" height="22" patternUnits="userSpaceOnUse"><rect width="22" height="22" fill="#eeb44f"/><path d="M0 11 L5.5 5.5 L11 11 L16.5 5.5 L22 11" stroke="#0a1530" stroke-width="1.6" fill="none"/></pattern>
+      <linearGradient id="d-terre" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b4488"/><stop offset="1" stop-color="#1b2e66"/></linearGradient>
+    </defs>
+  </svg>
+
+  <div class="chargement" aria-hidden="true">
+    <div class="rideau"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="chargement-contenu">
+      <p class="chargement-nom"><span class="fantome">Les voix du Faso</span><span class="rempli">Les voix du Faso</span></p>
+      <p class="chargement-etape"><span id="chargement-compteur">000</span> <span id="chargement-mot">Faso</span></p>
+    </div>
+  </div>
+
+  <div class="barre-defilement" id="barre-defilement" aria-hidden="true"></div>
+  <div class="balayage-ecran" id="balayage-ecran" aria-hidden="true"><i></i><i></i><i></i></div>
+  <a class="aller-contenu" href="#carte">Aller à la carte</a>
+  <header class="entete" id="entete">
+    <a href="/" class="marque" aria-label="Les voix du Faso, accueil">
+      <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 C27 11 31 16 31 23 A11 11 0 0 1 9 23 C9 18 12 15 14 11 C15 15 17 17 19 17 C20 12 19 8 20 3Z" fill="#eeb44f"/><path d="M20 19 C23 23 25 25 25 28 A5 5 0 0 1 15 28 C15 25 18 23 20 19Z" fill="#0a1530"/></svg>
+      <span>Les voix du Faso</span>
+    </a>
+    <button class="menu-bouton" id="menu-bouton" type="button" aria-expanded="false" aria-controls="navigation"><span class="visuel-cache">Menu</span><i></i><i></i></button>
+    <nav id="navigation" aria-label="Navigation principale">
+      <a href="#carte">La carte</a><a href="#recueil">Le recueil</a><a href="#sagesse">Paroles de sagesse</a><a href="/sources.html" data-page>Sources</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="carte" class="veillee" aria-labelledby="titre">
+      <canvas class="braises" aria-hidden="true"></canvas>
+      <div class="lueur" aria-hidden="true"></div>
+      <p class="filigrane" aria-hidden="true">veillée</p>
+      <div class="veillee-grille">
+        <div class="veillee-texte">
+          <h1 id="titre"><span class="ligne-titre"><span class="mot"><span>Le</span></span> <span class="mot"><span>Faso</span></span> <span class="mot"><span>se</span></span> <span class="mot"><span>raconte</span></span></span>
+            <em class="ligne-titre"><span class="mot"><span>à</span></span> <span class="mot"><span>la</span></span> <span class="mot"><span>tombée</span></span> <span class="mot"><span>de</span></span> <span class="mot"><span>la</span></span> <span class="mot"><span>nuit</span></span></em></h1>
+          <p class="chapeau">Les contes, les légendes et l’histoire du Burkina Faso, région par région, avec une carte vivante et des récits à parcourir.</p>
+
+          <div class="ecoute" id="ecoute" aria-labelledby="titre-ecoute">
+            <div class="ecoute-tete">
+              <p id="titre-ecoute">Écouter en</p>
+              <div class="langues" id="langues" role="group" aria-labelledby="titre-ecoute"></div>
+            </div>
+            <div id="ecoute-conte" class="ecoute-conte" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="vue-carte">
+          <div class="scene-carte" id="scene">
+            <svg id="carte-svg" viewBox="0 0 960 690" aria-label="Carte des 17 régions du Burkina Faso ; sélection au clic ou au clavier"><g id="formes-regions"></g><g id="points-lieux"></g></svg>
+            <div class="hologramme" id="hologramme" aria-live="polite" hidden></div>
+          </div>
+          <div class="carte-pied">
+            <span id="info-carte">Faites tourner la carte et choisissez une région. Chaque feu allumé est un récit.</span>
+            <button id="retour-carte" class="bouton fin" type="button" hidden>Revoir tout le pays</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="exploration">
+        <div class="panneau-regions">
+          <h2 id="titre-regions" class="visuel-cache">Les 17 régions</h2>
+          <div id="liste-regions" class="liste-regions" role="group" aria-labelledby="titre-regions"></div>
+        </div>
+        <div class="panneau-lieux" id="panneau-lieux" hidden>
+          <h2 id="titre-lieux">Les localités</h2>
+          <p id="description-lieux"></p>
+          <div id="liste-lieux" class="liste-lieux" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="recit" class="lecture" aria-labelledby="titre-recit" hidden>
+      <h2 id="titre-recit" class="lecture-titre"></h2>
+      <div id="zone-recit" class="zone-recit"></div>
+    </section>
+
+
+
+    <section id="voyage" class="voyage" aria-labelledby="titre-voyage">
+    <div class="voyage-scene"><div class="voyage-images" aria-hidden="true"><img src="/couvertures/le-lievre-et-le-puits.svg" alt=""></div>
+    <div class="voyage-texte"><h2 id="titre-voyage" data-mots>Suivre les récits, de lieu en lieu</h2>
+    <ol class="voyage-etapes" id="voyage-etapes"><li><button type="button" data-recit="le-lievre-et-le-puits"><small>En français</small><b>Le puits commun</b><span>Un conte contemporain autour du partage de l’eau.</span></button></li></ol></div></div></section>
+
+    <section id="recueil" class="recueil" aria-labelledby="titre-recueil">
+      <div class="recueil-tete">
+        <h2 id="titre-recueil" data-mots>Le recueil</h2>
+        <p>Dix récits, du conte de veillée à l’histoire du pays. Chaque fiche dit d’où vient le récit et ce qu’on en sait.</p>
+      </div>
+
+      <div class="filtres" id="filtres" role="group" aria-label="Filtrer par genre ou par langue"></div>
+      <div id="cartes-recits" class="cartes-recits"></div>
+    </section>
+
+    <section id="lieux" class="lieux" aria-labelledby="titre-lieux-reels">
+      <div class="lieux-epingle">
+        <div class="lieux-tete"><h2 id="titre-lieux-reels" data-mots>Là où les récits sont vivants</h2><p>Découvrez les lieux liés aux récits et la mosquée de Bobo-Dioulasso.</p></div>
+        <div class="lieux-rail" id="lieux-rail"></div>
+      </div>
+    </section>
+
+    <section id="mouvement" class="mouvement" aria-labelledby="titre-mouvement">
+      <div class="mouvement-fond"><video src="/video/masques-bobo.mp4" muted loop playsinline preload="metadata" aria-hidden="true" data-fond></video></div>
+      <div class="mouvement-contenu">
+        <h2 id="titre-mouvement" data-mots>Ici, la mémoire se danse aussi</h2>
+        <div class="mouvement-videos" id="mouvement-videos"></div>
+      </div>
+    </section>
+
+    <section id="sagesse" class="sagesse" aria-labelledby="titre-sagesse">
+    <canvas class="braises" aria-hidden="true"></canvas><h2 id="titre-sagesse" class="visuel-cache">Paroles de sagesse</h2>
+    <figure class="citation"><blockquote id="citation-texte">Chaque lieu garde des récits à transmettre.</blockquote><figcaption>Les voix du Faso</figcaption></figure>
+  </section>
+
+
+
+
+  </main>
+
+  <footer id="sources" class="pied">
+    <div class="pied-tete">
+      <h2 data-mots>Merci à celles et ceux qui ont transmis</h2>
+      <p>Ce site s’appuie sur des images et des recherches documentées. Leurs auteurs sont nommés sur la page des sources.</p>
+      <a class="bouton feu aimant" href="/sources.html" data-page>Voir toutes les sources</a>
+    </div>
+    <ul class="credits-courts"><li><b>Wikimedia Commons</b>photos et vidéos créditées</li><li><b>IGB et OCHA</b>carte des 17 régions</li><li><b>Le groupe du projet</b>récits, illustrations et couvertures</li></ul>
+    <p class="mention">Les voix du Faso, projet Technologies Web et Multimédia, 2026. Illustrations, couvertures, 3D et montages créés par notre groupe.</p>
+  </footer>
+  <a class="haut-page" id="haut-page" href="#carte" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19 V5 M6 11 L12 5 L18 11"/></svg></a>
+</body>
+</html>

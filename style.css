@@ -1,0 +1,551 @@
+/* Les voix du Faso : une veillée. La nuit indigo du Faso Dan Fani, éclairée par l'or du feu. */
+:root{
+  --nuit:#0a1530;--nuit-2:#111f45;--nuit-3:#1b2e66;--trait-nuit:rgba(238,180,79,.22);
+  --feu:#eeb44f;--braise:#d9672f;--clair:#f4f6fb;--papier:#fff;--encre:#121a30;--gris:#56607a;--trait:#dbe0ec;--holo:#8eefe3;
+  --f-texte:'Lexend',system-ui,-apple-system,'Segoe UI',sans-serif;--f-titre:'Instrument Serif',Georgia,serif;--f-langue:'Noto Serif',Georgia,serif;
+  --sortie:cubic-bezier(.16,1,.3,1);--volet:cubic-bezier(.83,0,.17,1);--trace:cubic-bezier(.65,0,.35,1);
+  --marge:clamp(18px,4.5vw,72px);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px;overflow-x:clip;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--nuit);color:var(--encre);font:300 clamp(1rem,.97rem + .15vw,1.08rem)/1.65 var(--f-texte);overflow-x:clip}
+h1,h2,h3{margin:0;font-weight:300;letter-spacing:-.015em;line-height:1.1;text-wrap:balance}
+p{margin:0}
+a{color:inherit;text-underline-offset:.18em}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+svg{display:block}
+[hidden]{display:none!important}
+:focus-visible{outline:3px solid var(--feu);outline-offset:3px;border-radius:4px}
+.clair :focus-visible,.recueil :focus-visible,.contribution :focus-visible{outline-color:var(--nuit-3)}
+.visuel-cache{position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.aller-contenu{position:fixed;left:12px;top:-60px;z-index:80;background:var(--feu);color:var(--nuit);padding:10px 16px;border-radius:6px;font-weight:500}
+.aller-contenu:focus{top:12px}
+
+/* Chargement : le nom se remplit, puis le rideau se lève */
+.chargement{display:none}
+.avec-chargement .chargement{display:grid;position:fixed;inset:0;z-index:100;place-items:center;pointer-events:none;animation:chargement-secours .01s linear 4s forwards}
+@keyframes chargement-secours{to{visibility:hidden}}
+.rideau{position:absolute;inset:0;display:grid;grid-template-columns:repeat(5,1fr)}
+.rideau i{background:var(--nuit);margin-right:-1px}
+.chargement.part .rideau i{animation:rideau .8s var(--volet) forwards}
+.rideau i:nth-child(2){animation-delay:.06s!important}.rideau i:nth-child(3){animation-delay:.12s!important}.rideau i:nth-child(4){animation-delay:.18s!important}.rideau i:nth-child(5){animation-delay:.24s!important}
+@keyframes rideau{to{transform:translateY(-101%)}}
+.chargement-contenu{position:relative;text-align:center;padding:0 var(--marge)}
+.chargement.part .chargement-contenu{opacity:0;transform:translateY(-24px);transition:opacity .3s ease,transform .3s ease}
+.chargement-nom{position:relative;font:italic 400 clamp(2.6rem,9vw,6.5rem)/1.1 var(--f-titre);white-space:nowrap}
+.chargement-nom .fantome{color:rgba(255,255,255,.1)}
+.chargement-nom .rempli{position:absolute;inset:0;color:var(--feu);clip-path:inset(calc(100% - var(--rempli,0%)) 0 0 0)}
+.chargement-etape{margin-top:12px;color:rgba(255,255,255,.6);font-size:.9rem;font-variant-numeric:tabular-nums;display:flex;justify-content:center;gap:12px}
+
+/* En-tête */
+.entete{position:fixed;inset:0 0 auto;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px var(--marge);color:#fff;transition:background-color .25s ease,box-shadow .25s ease}
+.entete.defile{background:rgba(10,21,48,.88);backdrop-filter:blur(10px);box-shadow:0 1px 0 var(--trait-nuit)}
+.marque{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:400;font-size:1.05rem;position:relative;z-index:2}
+.marque svg{width:32px;height:32px}
+.entete nav{display:flex;gap:clamp(14px,2.2vw,30px);font-size:.93rem}
+.entete nav a{text-decoration:none;padding:8px 0;position:relative;color:rgba(255,255,255,.82);transition:color .2s ease}
+.entete nav a::after{content:"";position:absolute;left:0;right:0;bottom:3px;height:1.5px;background:var(--feu);transform:scaleX(0);transform-origin:left;transition:transform .25s var(--sortie)}
+@media (hover:hover) and (pointer:fine){.entete nav a:hover{color:#fff}.entete nav a:hover::after{transform:scaleX(1)}}
+.menu-bouton{display:none;width:44px;height:44px;position:relative;z-index:2}
+.menu-bouton i{position:absolute;left:10px;right:10px;height:2px;background:#fff;transition:transform .25s var(--sortie),top .25s var(--sortie)}
+.menu-bouton i:first-of-type{top:17px}.menu-bouton i:last-of-type{top:26px}
+.menu-bouton[aria-expanded="true"] i:first-of-type{top:21px;transform:rotate(45deg)}
+.menu-bouton[aria-expanded="true"] i:last-of-type{top:21px;transform:rotate(-45deg)}
+
+/* La veillée : bloc d'accueil et carte */
+.veillee{position:relative;color:#fff;padding:clamp(92px,12vh,132px) var(--marge) clamp(28px,4vw,48px);overflow:clip;
+  background:radial-gradient(70% 60% at 72% 42%,rgba(45,72,150,.42),transparent 70%),radial-gradient(40% 34% at 18% 100%,rgba(217,103,47,.17),transparent 70%),var(--nuit)}
+.veillee::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;background-image:radial-gradient(1px 1px at 8% 16%,#fff,transparent),radial-gradient(1px 1px at 22% 8%,#fff,transparent),radial-gradient(1.4px 1.4px at 38% 22%,#fff,transparent),radial-gradient(1px 1px at 53% 7%,#fff,transparent),radial-gradient(1.4px 1.4px at 66% 14%,#fff,transparent),radial-gradient(1px 1px at 81% 9%,#fff,transparent),radial-gradient(1.2px 1.2px at 93% 24%,#fff,transparent),radial-gradient(1px 1px at 12% 42%,#fff,transparent),radial-gradient(1px 1px at 96% 58%,#fff,transparent),radial-gradient(1.2px 1.2px at 4% 68%,#fff,transparent)}
+.veillee-grille{position:relative;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(16px,3vw,44px);align-items:center;max-width:1560px;margin:auto}
+h1{font-size:clamp(2.5rem,1.35rem + 4.1vw,5.2rem);font-weight:200;line-height:1.02}
+h1 .ligne-titre{display:block}
+h1 em{font:italic 400 1.12em/1 var(--f-titre);color:var(--feu);margin-top:.08em;letter-spacing:-.01em}
+.mot{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.14em;margin-bottom:-.14em}
+.mot>span{display:inline-block}
+.motion .mot>span{transform:translateY(112%);transition:transform 1.05s var(--sortie);transition-delay:calc(var(--i,0)*55ms + var(--depart,0ms))}
+.motion.pret .mot>span{transform:none}
+.chapeau{margin-top:clamp(16px,2vw,24px);max-width:34em;color:rgba(255,255,255,.76);font-size:clamp(1.02rem,.96rem + .3vw,1.2rem)}
+
+/* Signature : écouter dans une langue */
+.ecoute{margin-top:clamp(22px,3vw,36px);max-width:560px}
+.ecoute-tete{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+.ecoute-tete p{font-size:.95rem;color:rgba(255,255,255,.7)}
+.langues{display:flex;flex-wrap:wrap;gap:6px}
+.langues button{min-height:40px;padding:0 15px;border:1px solid rgba(255,255,255,.26);border-radius:999px;font-size:.92rem;font-weight:400;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .14s ease}
+.langues button[aria-pressed="true"]{background:var(--feu);border-color:var(--feu);color:var(--nuit);font-weight:500}
+.langues button:active{transform:scale(.97)}
+@media (hover:hover) and (pointer:fine){.langues button[aria-pressed="false"]:hover{border-color:var(--feu)}}
+.ecoute-conte{margin-top:14px;padding:16px 18px;border-radius:14px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(6px)}
+.ecoute-haut{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:2px 12px}
+.ecoute-conte h2{font:400 1.45rem/1.15 var(--f-titre);letter-spacing:0}
+.ecoute-ou{font-size:.85rem;color:rgba(255,255,255,.62)}
+.ecoute-ligne{min-height:3.4em;margin:10px 0;font:400 1.04rem/1.55 var(--f-langue);color:rgba(255,255,255,.92)}
+.ecoute-ligne.attente{color:rgba(255,255,255,.62);font-family:var(--f-texte);font-weight:300;font-size:.95rem}
+.ecoute-bas{margin-top:8px;font-size:.9rem}
+.lien-feu{color:var(--feu);font-weight:400;text-decoration:underline;text-decoration-thickness:1px}
+
+/* Lecteur de voix */
+.voix{display:flex;align-items:center;gap:12px}
+.voix audio{display:none}
+.voix-jouer{flex:none;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--feu);color:var(--nuit);transition:transform .14s ease,box-shadow .2s ease}
+.voix-jouer:active{transform:scale(.95)}
+.voix-jouer svg{width:20px;height:20px;fill:currentColor}
+.voix.joue .voix-jouer{box-shadow:0 0 0 6px rgba(238,180,79,.18)}
+.voix-barre{flex:1;min-width:0;height:44px;margin:0;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;--avance:0%}
+.voix-barre::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(to right,var(--feu) var(--avance),rgba(255,255,255,.2) var(--avance))}
+.voix-barre::-moz-range-track{height:4px;border-radius:2px;background:rgba(255,255,255,.2)}
+.voix-barre::-moz-range-progress{height:4px;border-radius:2px;background:var(--feu)}
+.voix-barre::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:#fff}
+.voix-barre::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff}
+.voix-temps{flex:none;font-size:.85rem;color:rgba(255,255,255,.72);font-variant-numeric:tabular-nums}
+
+/* Carte */
+.vue-carte{position:relative;min-width:0}
+.scene-carte{position:relative;display:grid;place-items:center;perspective:1200px;min-height:clamp(330px,42vw,620px)}
+#carte-svg{width:min(100%,860px);height:auto;overflow:visible;transform:rotateX(40deg) rotateZ(-6deg) scale(.98);transform-origin:50% 56%;
+  transition:transform .85s var(--volet),filter .6s ease;
+  filter:drop-shadow(0 1px 0 #2e4a94) drop-shadow(0 2px 0 #2a4488) drop-shadow(0 3px 0 #253d7c) drop-shadow(0 4px 0 #213770) drop-shadow(0 5px 0 #1d3164) drop-shadow(0 6px 0 #192b58) drop-shadow(0 7px 0 #16264e) drop-shadow(0 26px 22px rgba(2,6,20,.75))}
+.aplatie #carte-svg{transform:rotateX(0) rotateZ(0) scale(.94);filter:drop-shadow(0 0 16px rgba(142,239,227,.1))}
+.forme-region{fill:url(#d-terre);stroke:rgba(238,180,79,.42);stroke-width:1.1;cursor:pointer;transition:fill .18s ease,opacity .3s ease}
+.forme-region:focus{outline:none}
+@media (hover:hover) and (pointer:fine){.forme-region:hover{fill:#3b5cb0}}
+.forme-region:focus-visible{fill:#3b5cb0;stroke:var(--feu);stroke-width:2.5}
+.aplatie .forme-region{opacity:.38}
+.aplatie .forme-region.selection{opacity:1;fill:url(#p-fani);stroke:var(--nuit);stroke-width:2}
+.marqueur{fill:rgba(255,255,255,.55);cursor:pointer;transition:opacity .25s ease,fill .2s ease}
+.marqueur.doc{fill:var(--feu)}
+.marqueur:focus{outline:none}
+.marqueur:focus-visible{stroke:#fff;stroke-width:3}
+.feu-halo{fill:var(--feu);opacity:.4;pointer-events:none;transform-box:fill-box;transform-origin:center;transition:opacity .25s ease}
+.motion .feu-halo{animation:halo 3s ease-in-out infinite;animation-delay:calc(var(--i,0)*-.37s)}
+@keyframes halo{50%{transform:scale(1.35);opacity:.14}}
+.marqueur.feu-eteint{opacity:.6}.feu-halo.feu-eteint{opacity:.12;animation:none}
+.feu-voix{fill:#fff}
+.feu-halo.feu-voix{fill:var(--braise);opacity:.6}
+.motion .pret-feux .marqueur.doc,.motion .pret-feux .feu-halo{animation-name:allume,halo;animation-duration:.5s,3s;animation-timing-function:var(--sortie),ease-in-out;animation-iteration-count:1,infinite;animation-delay:calc(var(--i,0)*60ms + 1s),calc(var(--i,0)*-.37s)}
+.motion .pret-feux .marqueur.doc{animation-name:allume;animation-iteration-count:1;animation-duration:.5s;animation-delay:calc(var(--i,0)*60ms + 1s);animation-fill-mode:both;transform-box:fill-box;transform-origin:center}
+@keyframes allume{from{opacity:0;transform:scale(.4)}}
+.etiquette-lieu{font:500 15px var(--f-texte);fill:#fff;paint-order:stroke;stroke:var(--nuit);stroke-width:4px;pointer-events:none;text-anchor:middle}
+.carte-pied{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px 16px;min-height:44px;font-size:.92rem;color:rgba(255,255,255,.7);text-align:right}
+
+/* Carte WebGL */
+.carte3d-toile{position:absolute;inset:-6% -8%;width:116%;height:112%;display:block;cursor:grab;touch-action:pan-y}
+.carte3d-toile:active{cursor:grabbing}
+.scene-carte.en-3d{perspective:none;min-height:clamp(380px,50vw,720px)}
+.scene-carte.en-3d #carte-svg{display:none}
+.scene-carte.en-3d .hologramme{z-index:6}
+
+/* Aperçu holographique */
+.hologramme{position:absolute;right:0;bottom:6%;width:min(310px,46%);z-index:5;color:#e6fffb;padding:16px 18px 12px;background:linear-gradient(165deg,rgba(26,52,110,.8),rgba(8,18,46,.92)),repeating-linear-gradient(0deg,rgba(142,239,227,.07) 0 1px,transparent 1px 4px);border:1px solid rgba(142,239,227,.6);border-radius:4px;box-shadow:0 0 30px rgba(142,239,227,.28),inset 0 0 30px rgba(142,239,227,.08);backdrop-filter:blur(5px);font-size:.92rem;transform-origin:50% 100%}
+.motion .hologramme{animation:holo .62s var(--sortie) both}
+@keyframes holo{0%{opacity:0;transform:translateY(18px) scaleY(.2);filter:brightness(2)}55%{opacity:.75}70%{opacity:.4}100%{opacity:1;transform:none;filter:none}}
+.hologramme.gauche{right:auto;left:0;bottom:auto;top:2%;transform-origin:50% 0}
+.hologramme::before,.hologramme::after{content:"";position:absolute;width:14px;height:14px;border:2px solid var(--holo)}
+.hologramme::before{left:-2px;top:-2px;border-width:2px 0 0 2px}.hologramme::after{right:-2px;bottom:-2px;border-width:0 2px 2px 0}
+.hologramme .balayage{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.hologramme .balayage::after{content:"";position:absolute;left:0;right:0;height:30%;top:-30%;background:linear-gradient(transparent,rgba(142,239,227,.12),transparent)}
+.motion .hologramme .balayage::after{animation:balaye 3.4s linear infinite}
+@keyframes balaye{to{top:100%}}
+.hologramme h3{font:400 1.75rem/1.1 var(--f-titre);letter-spacing:0;text-shadow:0 0 14px rgba(142,239,227,.6)}
+.hologramme .chiffres{font-size:.82rem;color:#aef3ea;margin-top:2px}
+.hologramme ul{list-style:none;margin:8px 0 0;padding:0;max-height:176px;overflow:auto}
+.hologramme li button{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;min-height:36px;padding:6px 2px;border-bottom:1px solid rgba(142,239,227,.18);text-align:left;font-weight:400;transition:background-color .15s ease}
+@media (hover:hover) and (pointer:fine){.hologramme li button:hover{background:rgba(142,239,227,.12)}}
+.hologramme li small{color:#9ee6dc;font-size:.76rem;white-space:nowrap}.hologramme li small.ok{color:var(--feu)}
+
+/* Régions et localités */
+.exploration{position:relative;max-width:1560px;margin:clamp(10px,1.5vw,18px) auto 0}
+.liste-regions{display:flex;flex-wrap:wrap;gap:6px}
+.bouton-region{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 13px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);font-size:.9rem;font-weight:400;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .14s ease}
+.bouton-region:active{transform:scale(.97)}
+.bouton-region small{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:rgba(238,180,79,.2);color:var(--feu);font-size:.73rem;line-height:18px;text-align:center;font-weight:500}
+.bouton-region.actif{background:var(--feu);border-color:var(--feu);color:var(--nuit);font-weight:500}.bouton-region.actif small{background:rgba(10,21,48,.15);color:var(--nuit)}
+@media (hover:hover) and (pointer:fine){.bouton-region:not(.actif):hover{border-color:var(--feu)}}
+.panneau-lieux{margin-top:clamp(18px,2.4vw,28px);padding-top:16px;border-top:1px solid var(--trait-nuit)}
+.panneau-lieux h2{font:400 clamp(1.6rem,1.3rem + 1vw,2.2rem)/1.1 var(--f-titre);letter-spacing:0}
+.panneau-lieux>p{color:rgba(255,255,255,.66);font-size:.95rem;margin-top:2px}
+.liste-lieux{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:8px;margin-top:12px}
+.lieu{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;min-height:64px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.11);text-align:left;transition:border-color .18s ease,transform .14s ease}
+.lieu:active{transform:scale(.98)}
+.lieu b{display:block;font-weight:400}.lieu small{display:block;font-size:.8rem;color:rgba(255,255,255,.64);line-height:1.35}.lieu.doc small{color:var(--feu)}
+.lieu.actif{border-color:var(--feu)}
+.lieu svg{flex:none;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s var(--sortie)}
+@media (hover:hover) and (pointer:fine){.lieu:hover{border-color:var(--feu)}.lieu:hover svg{transform:translateX(3px)}}
+
+/* Lecture d'un récit */
+.lecture{color:#fff;background:var(--nuit-2);padding:clamp(48px,6vw,84px) var(--marge);border-top:1px solid var(--trait-nuit)}
+.lecture-titre{max-width:1560px;margin:0 auto clamp(18px,3vw,32px);font:400 clamp(2.3rem,1.6rem + 3vw,4.4rem)/1.04 var(--f-titre);letter-spacing:-.005em}
+.zone-recit{max-width:1560px;margin:auto}
+.fiche-recit{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:clamp(22px,4vw,64px);align-items:start}
+.colonne-visuels{position:sticky;top:88px;display:grid;gap:18px;min-width:0}.colonne-visuels.plusieurs{position:static}
+.illustration{position:relative;margin:0;border-radius:14px;overflow:hidden;background:var(--nuit)}
+.illustration svg{width:100%;height:auto;aspect-ratio:600/380}
+.illustration figcaption{padding:8px 2px 0;font-size:.82rem;color:rgba(255,255,255,.6);background:var(--nuit-2)}
+.et{opacity:0;transition:opacity .35s ease}
+[data-etape="1"] .et-1,[data-etape="2"] .et-2,[data-etape="3"] .et-3,[data-etape="4"] .et-4{opacity:1}
+.meta{font-size:.95rem;color:var(--feu);font-weight:400}
+.lieu-recit{color:rgba(255,255,255,.66);font-size:.95rem}
+.titre-original{font:italic 400 1.1rem var(--f-langue);color:rgba(255,255,255,.82);margin-top:6px}
+.passage{font:400 clamp(1.3rem,1.15rem + .6vw,1.72rem)/1.42 var(--f-titre);margin:16px 0 0;min-height:7.4em;max-width:32em}
+.passage.court{min-height:0;font-size:clamp(1.15rem,1.05rem + .4vw,1.42rem)}
+.motion .passage{animation:passage .32s var(--sortie)}
+@keyframes passage{from{opacity:0;transform:translateY(6px)}}
+.progression{display:flex;gap:6px;margin-top:18px}
+.progression button{flex:1;height:44px;position:relative}
+.progression button::before{content:"";position:absolute;left:0;right:0;top:20px;height:3px;border-radius:2px;background:rgba(255,255,255,.2)}
+.progression button.fait::before{background:var(--feu)}
+.progression button.encours::after{content:"";position:absolute;left:0;top:20px;height:3px;border-radius:2px;width:var(--avance,0%);background:var(--feu)}
+.commandes{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.commande{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 15px;border:1px solid rgba(255,255,255,.24);border-radius:8px;font-size:.92rem;font-weight:400;transition:transform .14s ease,background-color .18s ease,color .18s ease,opacity .18s ease}
+.commande:active{transform:scale(.97)}
+.commande svg{width:16px;height:16px;fill:currentColor}
+.commande.principale{background:var(--feu);border-color:var(--feu);color:var(--nuit);font-weight:500}
+.commande[disabled]{opacity:.35;cursor:not-allowed}
+.commande[aria-pressed="true"]{background:#fff;color:var(--nuit)}
+.etape-num{margin-left:auto;font-size:.85rem;color:rgba(255,255,255,.66);font-variant-numeric:tabular-nums}
+.bloc{margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,.14);font-size:.95rem}
+.bloc h3{font-size:.98rem;font-weight:500;letter-spacing:0;margin-bottom:6px}
+.bloc p+p{margin-top:6px}
+.bloc .discret,.discret{color:rgba(255,255,255,.64);font-size:.9rem}
+.bloc a{color:var(--feu)}
+.voix-auteur{margin-top:6px;font-size:.88rem;color:rgba(255,255,255,.7)}
+.transcription{position:relative;max-height:16em;overflow-y:auto;margin-top:8px;padding-right:10px;font:400 clamp(1.05rem,1rem + .3vw,1.24rem)/1.72 var(--f-langue);scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.3) transparent}
+.transcription .ligne{cursor:pointer;color:rgba(255,255,255,.52);padding:1px 3px;border-radius:3px;transition:color .18s ease,background-color .18s ease}
+.transcription .ligne.passee{color:rgba(255,255,255,.78)}
+.transcription .ligne.active{color:var(--nuit);background:var(--feu)}
+@media (hover:hover) and (pointer:fine){.transcription .ligne:not(.active):hover{color:#fff}}
+.traduction summary{cursor:pointer;font-weight:400;min-height:44px;display:flex;align-items:center;gap:10px;list-style:none}
+.traduction summary::-webkit-details-marker{display:none}
+.traduction summary::before{content:"";width:8px;height:8px;border-right:1.5px solid var(--feu);border-bottom:1.5px solid var(--feu);transform:rotate(-45deg);transition:transform .2s var(--sortie)}
+.traduction[open] summary::before{transform:rotate(45deg)}
+.traduction p{margin-top:10px;max-width:38em}
+.ecoute-fr{margin:6px 0 12px}.ecoute-fr .discret{margin:0}
+.avis-travail{margin:6px 0 10px;padding:8px 12px;border-left:2px solid var(--feu);color:rgba(255,255,255,.76);font-size:.88rem}
+.sources-recit{margin:6px 0 0;padding-left:18px;font-size:.9rem}
+.mots{display:flex;flex-wrap:wrap;gap:6px}
+.mots details{padding:6px 10px;border:1px solid rgba(255,255,255,.2);border-radius:6px;font-size:.88rem}.mots summary{cursor:pointer}
+.avis-vide{max-width:38em;font-size:clamp(1.05rem,1rem + .3vw,1.25rem)}
+.avis-vide strong{display:block;font-weight:400}
+.avis-vide a{color:var(--feu)}
+.choix-recits{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:18px}
+.choix-recits .carte-recit{color:var(--encre)}
+
+/* Recueil */
+.recueil{background:var(--clair);padding:clamp(56px,7vw,104px) var(--marge)}
+.recueil>*{max-width:1560px;margin-inline:auto}
+.recueil-tete{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:10px 40px;align-items:end}
+.recueil-tete h2,.contribution h2{font-size:clamp(2.2rem,1.5rem + 2.8vw,4rem);font-weight:200;color:var(--nuit)}
+.recueil-tete p{color:var(--gris);max-width:36em}
+.filtres{display:flex;flex-wrap:wrap;gap:6px;margin-block:clamp(24px,3vw,36px) 18px}
+.filtre{min-height:40px;padding:0 14px;border:1px solid var(--trait);border-radius:999px;background:var(--papier);font-size:.9rem;font-weight:400;color:var(--encre);transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .14s ease}
+.filtre:active{transform:scale(.97)}
+.filtre[aria-pressed="true"]{background:var(--nuit);border-color:var(--nuit);color:#fff}
+@media (hover:hover) and (pointer:fine){.filtre[aria-pressed="false"]:hover{border-color:var(--nuit-3)}}
+/* Paroles de sagesse */
+.sagesse{position:relative;color:#fff;background:radial-gradient(60% 50% at 50% 100%,rgba(217,103,47,.2),transparent 70%),var(--nuit);padding:clamp(70px,10vw,150px) var(--marge)}
+.citation{margin:0 auto clamp(44px,6vw,80px);max-width:1120px}
+.citation blockquote{margin:0;font:400 clamp(2.1rem,1.25rem + 4.2vw,5rem)/1.08 var(--f-titre);letter-spacing:-.008em}
+.citation blockquote span{transition:opacity .2s linear}
+.citation figcaption{margin-top:16px;color:rgba(255,255,255,.68);font-size:.95rem}
+.sagesse-grille{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:18px;max-width:1120px;margin:auto}
+.video-sagesse{margin:0}
+.video-sagesse video{display:block;width:100%;aspect-ratio:16/10;border-radius:12px;background:#050b1c}
+.video-sagesse figcaption{padding-top:10px;font-size:.92rem;color:rgba(255,255,255,.72)}
+.video-sagesse b{font-weight:400;color:#fff}
+
+/* Contribution */
+.contribution{background:var(--clair);padding:clamp(56px,7vw,104px) var(--marge);display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(22px,4vw,64px);align-items:start}
+.contribution-texte{position:sticky;top:96px}
+.contribution-texte p{color:var(--gris);margin-top:14px;max-width:32em}
+form{display:grid;gap:14px;padding:clamp(18px,2.4vw,30px);border:1px solid var(--trait);border-radius:14px;background:var(--papier)}
+form label{display:grid;gap:5px;font-weight:400;font-size:.94rem}
+input:not([type=checkbox],[type=range]),select,textarea{width:100%;min-height:46px;padding:10px 12px;border:1px solid #b9c1d6;border-radius:6px;background:#fff;font-weight:300;transition:border-color .15s ease}
+input[type=file]{padding:9px}
+textarea{min-height:130px;resize:vertical}
+input:not([type=range]):focus,select:focus,textarea:focus{border-color:var(--nuit-3);outline:2px solid var(--nuit-3);outline-offset:0}
+.piege{position:absolute!important;left:-9999px}
+form .consentement{display:flex;gap:10px;align-items:flex-start;font-weight:300;font-size:.88rem;color:#3c455d}
+.consentement input{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--nuit-3)}
+.bouton{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 20px;border-radius:8px;font-weight:500;transition:transform .14s ease,background-color .18s ease,border-color .18s ease}
+.bouton:active{transform:scale(.97)}
+.bouton.plein{background:var(--nuit);color:#fff}
+.bouton.fin{min-height:40px;padding:0 14px;border:1px solid rgba(255,255,255,.3);font-weight:400;font-size:.9rem}
+@media (hover:hover) and (pointer:fine){.bouton.plein:hover{background:var(--nuit-3)}.bouton.fin:hover{border-color:var(--feu)}}
+.bouton[disabled]{opacity:.6}
+.statut{min-height:1.4em;font-size:.93rem;font-weight:400}.statut.succes{color:#146f46}.statut.erreur{color:#a52a26}
+
+/* Pied de page */
+.haut-page{position:fixed;right:18px;bottom:18px;z-index:50;display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--feu);color:var(--nuit);opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity .2s ease,transform .2s var(--sortie);box-shadow:0 8px 20px -8px rgba(0,0,0,.6)}
+.haut-page.visible{opacity:1;pointer-events:auto;transform:none}
+.haut-page svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Animations des illustrations */
+.anim-flamme{transform-box:fill-box;transform-origin:50% 100%;animation:flamme .7s ease-in-out infinite alternate}.anim-flamme.b{animation-duration:.5s}@keyframes flamme{from{transform:scaleY(.9) skewX(-3deg)}to{transform:scaleY(1.1) skewX(3deg)}}
+.anim-soleil{transform-box:fill-box;transform-origin:center;animation:soleil 7s ease-in-out infinite alternate}@keyframes soleil{to{transform:scale(1.07)}}
+.plan-loin{animation:plan-loin 18s ease-in-out infinite alternate}@keyframes plan-loin{from{transform:translateX(-8px)}to{transform:translateX(8px)}}
+.anim-tourne{transform-box:fill-box;transform-origin:center;animation:tourne 30s linear infinite}@keyframes tourne{to{transform:rotate(360deg)}}
+.anim-scintille{animation:scintille 2.6s ease-in-out infinite}@keyframes scintille{50%{opacity:.2}}
+.anim-balance{transform-box:fill-box;transform-origin:50% 100%;animation:balance 3.4s ease-in-out infinite alternate}@keyframes balance{from{transform:rotate(-2deg)}to{transform:rotate(2deg)}}
+.anim-saut{animation:saut 1.4s ease-in-out infinite}@keyframes saut{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-18px)}}
+.anim-chute{animation:chute 1.8s ease-in infinite}@keyframes chute{0%{transform:translateY(0);opacity:1}80%{transform:translateY(60px);opacity:0}100%{opacity:0}}
+.anim-arrive{animation:arrive 1.4s ease-out both}@keyframes arrive{from{transform:translateX(60px);opacity:0}}
+.anim-fane{transform-box:fill-box;transform-origin:50% 100%;animation:fane 3s ease-in-out infinite alternate}@keyframes fane{to{transform:rotate(14deg) scaleY(.88)}}
+.anim-galop{animation:galop 7s linear infinite}@keyframes galop{from{transform:translateX(-120px)}to{transform:translateX(720px)}}
+.anim-galop-court{animation:galop-court 2.4s ease-in-out infinite alternate}@keyframes galop-court{to{transform:translateX(30px)}}
+.anim-patte{transform-box:fill-box;transform-origin:50% 0;animation:patte .4s ease-in-out infinite alternate}.anim-patte.b{animation-delay:-.2s}@keyframes patte{from{transform:rotate(-18deg)}to{transform:rotate(18deg)}}
+.anim-vague{animation:vague 4s linear infinite}@keyframes vague{to{transform:translateX(80px)}}
+.anim-nage{animation:nage 11s linear infinite}.anim-nage.r{animation-direction:reverse;animation-duration:14s}@keyframes nage{from{transform:translateX(-80px)}to{transform:translateX(680px)}}
+.anim-queue{transform-box:fill-box;transform-origin:100% 50%;animation:queue .45s ease-in-out infinite alternate}@keyframes queue{to{transform:scaleY(.55)}}
+.anim-cligne{transform-box:fill-box;transform-origin:center;animation:cligne 4s infinite}@keyframes cligne{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}
+.anim-rampe{animation:rampe 5s ease-in-out infinite alternate}@keyframes rampe{to{transform:translateX(-40px)}}
+.anim-marche{animation:marche 1s ease-in-out infinite alternate}@keyframes marche{to{transform:translate(8px,-3px)}}
+.anim-onde{transform-box:fill-box;transform-origin:center;animation:onde 2.6s ease-out infinite}@keyframes onde{from{transform:scale(.4);opacity:1}to{transform:scale(1.15);opacity:0}}
+.anim-danse{animation:danse .8s ease-in-out infinite alternate}@keyframes danse{to{transform:translateY(-8px)}}
+.anim-trace{stroke-dasharray:260;stroke-dashoffset:260;animation:trace 3.5s ease-out forwards}@keyframes trace{to{stroke-dashoffset:0}}
+.anim-pulse{animation:pulse 2s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}
+.anim-chute-etoile{animation:chute-etoile 4s ease-in infinite}@keyframes chute-etoile{0%{opacity:0;transform:translate(60px,-120px)}20%{opacity:1}70%,100%{opacity:0;transform:translate(0,0)}}
+.anim-descend{animation:descend 6s ease-in-out infinite}@keyframes descend{0%,10%{transform:translate(0,0)}80%,100%{transform:translate(120px,150px)}}
+.anim-flotte{animation:flotte 3s ease-in-out infinite alternate}@keyframes flotte{to{transform:translate(12px,4px)}}
+.anim-monte{animation:monte 3s ease-out both}@keyframes monte{from{transform:translateY(180px)}}
+.anim-exil{animation:exil 6s ease-in-out infinite}@keyframes exil{0%{transform:translateX(0)}80%,100%{transform:translateX(260px);opacity:.2}}
+.anim-fumee{animation:fumee 2.4s ease-out infinite}@keyframes fumee{from{opacity:.9;transform:translate(0,0)}to{opacity:0;transform:translate(-20px,-30px)}}
+.anim-peint{animation:peint 2.4s ease-out both}@keyframes peint{from{clip-path:inset(100% 0 0 0)}to{clip-path:inset(0 0 0 0)}}
+.anim-geste{transform-box:fill-box;transform-origin:50% 100%;animation:geste 1.2s ease-in-out infinite alternate}@keyframes geste{to{transform:rotate(4deg)}}
+.anim-onde-son{animation:pulse 1.2s ease-in-out infinite}
+.anim-rire{animation:rire 1.6s ease-in-out infinite}@keyframes rire{0%,100%{opacity:0;transform:translateY(6px)}40%,70%{opacity:1;transform:none}}
+
+/* Couvertures du recueil */
+.cartes-recits{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:clamp(22px,2.6vw,38px) clamp(16px,2vw,28px);perspective:1400px}
+.carte-recit{display:block;text-align:left;font-weight:300;--r:0deg;color:var(--encre);transition:rotate .5s var(--sortie)}
+.couverture{position:relative;display:block;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--nuit);box-shadow:0 22px 40px -22px rgba(10,21,48,.75),0 2px 6px rgba(10,21,48,.22);transform-style:preserve-3d;transition:transform .35s var(--sortie),box-shadow .35s ease;will-change:transform}
+.couverture img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .9s var(--sortie)}
+.couverture::before{content:"";position:absolute;z-index:1;inset:0;background:linear-gradient(180deg,rgba(5,6,20,.72) 0%,rgba(5,6,20,.2) 32%,transparent 50%)}
+.couverture.photo::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(10,21,48,.5),transparent 42%);mix-blend-mode:multiply}
+.couverture-titre{position:absolute;z-index:2;left:16px;right:16px;top:14px;color:#fff}
+.couverture-titre small{display:block;font-size:.76rem;font-weight:400;color:var(--feu);margin-bottom:4px}
+.couverture-titre strong{display:block;font:400 clamp(1.5rem,1.2rem + .8vw,1.95rem)/1.04 var(--f-titre);text-wrap:balance;text-shadow:0 1px 14px rgba(0,0,0,.45)}
+.couverture-reflet{position:absolute;z-index:3;inset:0;opacity:0;background:radial-gradient(circle at var(--rx,50%) var(--ry,50%),rgba(255,235,190,.34),transparent 52%);transition:opacity .3s ease;pointer-events:none}
+.corps{display:block;padding:12px 2px 0}
+.corps .ou{display:block;font-size:.82rem;color:#7a4415;font-weight:400}
+.corps .resume{display:block;font-size:.9rem;color:#3c455d;margin-top:3px;line-height:1.45}
+@media (hover:hover) and (pointer:fine){
+  .carte-recit{rotate:var(--r)}
+  .carte-recit:hover{rotate:0deg}
+  .carte-recit:hover .couverture{box-shadow:0 40px 60px -26px rgba(10,21,48,.85)}
+  .carte-recit:hover .couverture img{transform:scale(1.08)}
+  .carte-recit:hover .couverture-reflet{opacity:1}
+}
+.carte-recit:active .couverture{scale:.98}
+.choix-recits .corps .ou{color:var(--feu)}.choix-recits .corps .resume{color:rgba(255,255,255,.76)}
+
+/* Le voyage de l'hyène : section épinglée pilotée par le défilement */
+.voyage{position:relative;background:var(--nuit);color:#fff;height:400vh}
+.voyage-scene{position:sticky;top:0;height:100vh;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:center;gap:clamp(24px,5vw,90px);padding:84px var(--marge) 28px;overflow:hidden}
+.voyage-images{position:relative;height:min(100%,calc((100vw - 2*var(--marge))*.42*1.33));aspect-ratio:3/4;justify-self:center;border-radius:18px;overflow:hidden;box-shadow:0 40px 90px -30px rgba(238,180,79,.28)}
+.voyage-images img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;will-change:clip-path,transform}
+.voyage-texte h2{font-size:clamp(2.2rem,1.5rem + 2.6vw,4rem);font-weight:200;margin-bottom:clamp(14px,2.4vw,30px)}
+.voyage-etapes{list-style:none;margin:0;padding:0 0 0 22px;position:relative;display:grid;gap:4px}
+.voyage-etapes::before{content:"";position:absolute;left:3px;top:10px;bottom:10px;width:2px;background:rgba(255,255,255,.14)}
+.voyage-etapes li{position:relative;opacity:.42;transition:opacity .35s ease,transform .45s var(--sortie)}
+.voyage-etapes li::before{content:"";position:absolute;left:-24px;top:16px;width:10px;height:10px;border-radius:50%;background:#3d4c78;transition:background-color .3s ease,box-shadow .3s ease}
+.voyage-etapes li.passe{opacity:.62}.voyage-etapes li.passe::before{background:var(--feu)}
+.voyage-etapes li.actif{opacity:1;transform:translateX(8px)}.voyage-etapes li.actif::before{background:var(--feu);box-shadow:0 0 0 6px rgba(238,180,79,.22),0 0 22px var(--feu)}
+.voyage-etapes button{display:block;width:100%;text-align:left;padding:8px 0;font-weight:300}
+.voyage-etapes small{display:block;font-size:.84rem;color:var(--feu)}
+.voyage-etapes b{display:block;font:400 clamp(1.5rem,1.2rem + 1.1vw,2.3rem)/1.1 var(--f-titre)}
+.voyage-etapes span{display:block;max-height:0;overflow:hidden;color:rgba(255,255,255,.72);font-size:.95rem;transition:max-height .4s var(--sortie)}
+.voyage-etapes li.actif span{max-height:3.2em}
+
+/* Bandeau défilant */
+.bande{overflow:hidden;background:var(--feu);color:var(--nuit);padding:10px 0;border-block:1px solid rgba(10,21,48,.2);transform:rotate(-1.1deg) scale(1.02);position:relative;z-index:3}
+.bande-piste{display:flex;align-items:center;gap:22px;width:max-content;font:400 clamp(1.7rem,1.2rem + 2vw,3.1rem)/1.1 var(--f-titre);white-space:nowrap}
+.motion .bande-piste{animation:bande 38s linear infinite}
+@keyframes bande{to{transform:translateX(-50%)}}
+.bande .contour{color:transparent;-webkit-text-stroke:1px var(--nuit)}
+.bande i{width:12px;height:12px;background:var(--nuit);rotate:45deg;flex:none}
+
+/* Les lieux : rail horizontal */
+.lieux{position:relative;background:var(--nuit-2);color:#fff;padding:0}
+.lieux-epingle{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center;gap:clamp(16px,3vh,32px);overflow:hidden;padding:80px 0 24px}
+.lieux-tete{padding:0 var(--marge)}
+.lieux-tete h2{font-size:clamp(2.1rem,1.5rem + 2.6vw,4rem);font-weight:200}
+.lieux-tete p{color:rgba(255,255,255,.7);margin-top:6px}
+.lieux-rail{display:flex;gap:clamp(14px,2vw,28px);width:max-content;padding:0 var(--marge);will-change:transform}
+.lieu-photo{margin:0;width:clamp(280px,34vw,520px);flex:none}
+.lieu-photo:nth-child(even){margin-top:clamp(0px,4vh,44px)}
+.lieu-photo button,.lieu-photo>span{display:block;width:100%;aspect-ratio:4/3;overflow:hidden;border-radius:12px;background:var(--nuit)}
+.lieu-photo img{display:block;width:100%;height:100%;object-fit:cover;scale:1.02;transition:scale .6s var(--sortie)}
+@media (hover:hover) and (pointer:fine){.lieu-photo button:hover img{scale:1.12}}
+.lieu-photo figcaption{padding-top:8px}
+.lieu-photo b{display:block;font:400 1.3rem/1.15 var(--f-titre)}
+.lieu-photo small{font-size:.78rem;color:rgba(255,255,255,.6)}
+
+/* La danse : la vidéo s'ouvre jusqu'au plein écran */
+.mouvement{position:relative;color:#fff;background:var(--nuit);padding:clamp(70px,10vw,150px) var(--marge);overflow:hidden}
+.mouvement-fond{position:absolute;inset:0;will-change:clip-path}
+.mouvement-fond video{width:100%;height:100%;object-fit:cover;filter:saturate(1.1) brightness(.5)}
+.mouvement-fond::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,21,48,.5),rgba(10,21,48,.25) 40%,rgba(10,21,48,.88))}
+.mouvement-contenu{position:relative;max-width:1240px;margin:auto}
+.mouvement h2{font-size:clamp(2.6rem,1.6rem + 5vw,6.2rem);font-weight:200;max-width:13em;margin-bottom:clamp(24px,4vw,48px)}
+.mouvement-videos{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.1fr);gap:clamp(14px,2vw,24px);align-items:end}
+.video-danse{margin:0}
+.video-danse video{display:block;width:100%;border-radius:12px;background:#050b1c;box-shadow:0 30px 60px -20px rgba(0,0,0,.7)}
+.video-danse figcaption{padding-top:8px;font-size:.88rem;color:rgba(255,255,255,.82)}.video-danse b{font-weight:400;color:#fff}.video-danse a{color:var(--feu)}
+
+/* Film et photo d'un récit */
+.film,.photo-recit{margin:0}
+.film video{display:block;width:100%;aspect-ratio:16/9;border-radius:12px;background:#050b1c;object-fit:cover}
+.photo-recit img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:12px}
+.film figcaption,.photo-recit figcaption{padding-top:7px;font-size:.84rem;color:rgba(255,255,255,.68)}
+.film b,.photo-recit b{font-weight:400;color:#fff}.photo-recit a{color:var(--feu)}
+
+/* Pied de page court et page des sources */
+.pied{color:rgba(255,255,255,.78);background:#070f24;padding:clamp(52px,7vw,100px) var(--marge) 26px;display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(26px,5vw,70px);align-items:start}
+.pied h2{font-size:clamp(2.2rem,1.5rem + 2.6vw,3.9rem);font-weight:200;color:#fff;margin-bottom:14px}
+.pied-tete p{max-width:34em;margin-bottom:22px}
+.bouton.feu{background:var(--feu);color:var(--nuit);transition:translate .25s var(--sortie),transform .14s ease,box-shadow .25s ease}
+.credits-courts{list-style:none;margin:0;padding:0}
+.credits-courts li{padding:11px 0;border-top:1px solid rgba(255,255,255,.12);font-size:.92rem}
+.credits-courts b{display:block;font-weight:400;color:#fff}
+.mention{grid-column:1/-1;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.56);font-size:.84rem}
+.page-sources{background:var(--clair)}
+.page-sources .entete{background:var(--nuit)}
+.sources{padding:clamp(100px,12vw,150px) var(--marge) clamp(50px,7vw,90px);max-width:1180px;margin:auto}
+.sources h1{font-size:clamp(2.6rem,1.6rem + 4vw,5.2rem);color:var(--nuit)}
+.sources-intro{margin-top:16px;max-width:42em;color:var(--gris)}
+.sources-groupe{margin-top:clamp(30px,4.5vw,56px);display:grid;grid-template-columns:minmax(0,3fr) minmax(0,9fr);gap:12px 28px}
+.sources-groupe h2{font:400 1.7rem/1.1 var(--f-titre);letter-spacing:0;color:var(--nuit)}
+.sources-groupe ul{list-style:none;margin:0;padding:0}
+.sources-groupe li{padding:11px 0;border-top:1px solid var(--trait);font-size:.93rem;line-height:1.5}
+.sources-groupe b{display:block;font-weight:500;color:var(--nuit)}
+.sources-groupe a{color:#8a4a12}
+.sources-groupe span{color:var(--gris)}
+.motion-sources,.page-sources main{animation:monte-page .7s var(--sortie) both}
+@keyframes monte-page{from{opacity:0;transform:translateY(26px)}}
+
+/* Grand mouvement */
+.barre-defilement{position:fixed;left:0;right:0;top:0;height:3px;z-index:70;background:linear-gradient(90deg,var(--braise),var(--feu));transform:scaleX(0);transform-origin:left;pointer-events:none}
+.balayage-ecran{position:fixed;inset:0;z-index:95;pointer-events:none;overflow:hidden}
+.balayage-ecran i{position:absolute;top:-10%;bottom:-10%;left:-30%;width:160%;transform:translateX(-120%) skewX(-14deg)}
+.balayage-ecran i:nth-child(1){background:var(--braise)}.balayage-ecran i:nth-child(2){background:var(--feu)}.balayage-ecran i:nth-child(3){background:var(--nuit)}
+.balayage-ecran.entre i{transition:transform .55s var(--volet);transform:translateX(0) skewX(-14deg)}
+.balayage-ecran.entre i:nth-child(2){transition-delay:.05s}.balayage-ecran.entre i:nth-child(3){transition-delay:.1s}
+.balayage-ecran.sort i{transition:transform .65s var(--volet);transform:translateX(120%) skewX(-14deg)}
+.balayage-ecran.sort i:nth-child(1){transition-delay:.1s}.balayage-ecran.sort i:nth-child(2){transition-delay:.05s}
+.braises{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.lueur{position:absolute;left:0;top:0;width:600px;height:600px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(238,180,79,.13),transparent 62%);will-change:transform}
+.filigrane{position:absolute;left:0;bottom:-.14em;margin:0;font:italic 400 clamp(9rem,27vw,30rem)/.8 var(--f-titre);white-space:nowrap;color:transparent;-webkit-text-stroke:1px rgba(238,180,79,.13);pointer-events:none;will-change:transform}
+.veillee-grille,.exploration{z-index:2}
+.scene-carte{transform-style:preserve-3d;will-change:transform}
+.motion.pret .forme-region{animation:region-monte .9s var(--sortie) both;animation-delay:calc(var(--i,0)*35ms + .2s)}
+@keyframes region-monte{from{opacity:0;transform:translateY(-46px)}}
+.onde-carte{fill:none;stroke:var(--feu);stroke-width:3;transform-box:fill-box;transform-origin:center;animation:onde-carte 1.25s var(--sortie) forwards;pointer-events:none}
+@keyframes onde-carte{to{transform:scale(11);opacity:0}}
+.motion .ecoute-conte.bascule{animation:bascule .55s var(--sortie)}
+@keyframes bascule{from{opacity:0;transform:translateY(16px) rotateX(-14deg) scale(.97);filter:blur(5px)}}
+.motion .ecoute{animation:apparait 1s var(--sortie) .9s both}.motion .chapeau{animation:apparait 1s var(--sortie) .7s both}
+@keyframes apparait{from{opacity:0;transform:translateY(22px)}}
+.motion [data-mots] .mot>span{transform:translateY(112%);transition:transform 1s var(--sortie);transition-delay:calc(var(--i,0)*55ms)}
+.motion [data-mots].vu .mot>span{transform:none}
+.motion .lecture-titre .mot>span{transform:translateY(112%)}
+.motion .lecture-titre.vu .mot>span{transform:none;transition:transform .95s var(--sortie);transition-delay:calc(var(--i,0)*55ms + .15s)}
+.motion .revele{opacity:0;transform:translateY(46px) rotate(calc(var(--r,0deg)*2)) scale(.95);transition:opacity .75s ease var(--decale,0ms),transform 1s var(--sortie) var(--decale,0ms)}
+.motion .revele.vu{opacity:1;transform:none}
+.motion .fiche-recit .illustration{animation:volet 1s var(--volet) .2s both}
+@keyframes volet{from{clip-path:inset(0 100% 0 0 round 14px)}to{clip-path:inset(0 0 0 0 round 14px)}}
+.motion .cascade>*{animation:apparait .8s var(--sortie) both}
+.cascade>*:nth-child(1){animation-delay:.25s}.cascade>*:nth-child(2){animation-delay:.32s}.cascade>*:nth-child(3){animation-delay:.39s}.cascade>*:nth-child(4){animation-delay:.46s}.cascade>*:nth-child(5){animation-delay:.53s}.cascade>*:nth-child(6){animation-delay:.6s}.cascade>*:nth-child(n+7){animation-delay:.67s}
+.illustration .dessin{overflow:hidden}
+.motion .camera{transform-origin:var(--foyer,50% 60%);animation:camera 16s ease-in-out infinite alternate}
+@keyframes camera{from{transform:scale(1.03)}to{transform:scale(1.2)}}
+.illustration::after{content:"";position:absolute;z-index:3;top:-10%;bottom:-10%;left:-20%;width:70%;background:linear-gradient(90deg,var(--braise),var(--feu));transform:translateX(-160%) skewX(-12deg);pointer-events:none}
+.motion .illustration.coupe::after{animation:coupe .95s var(--volet)}
+@keyframes coupe{to{transform:translateX(320%) skewX(-12deg)}}
+.lieu-photo{animation:none}
+.motion .marque svg{animation:flamme-logo 1.8s ease-in-out infinite alternate;transform-origin:50% 90%}
+@keyframes flamme-logo{to{transform:scaleY(1.07) skewX(2deg)}}
+.motion .voix.joue .voix-jouer{animation:pouls 1.5s ease-out infinite}
+@keyframes pouls{0%{box-shadow:0 0 0 0 rgba(238,180,79,.5)}100%{box-shadow:0 0 0 18px rgba(238,180,79,0)}}
+.aimant,.voix-jouer,.langues button{transition:translate .3s var(--sortie),transform .14s ease,background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .2s ease}
+
+/* La veillée immersive */
+.page-immersion{background:#050b22;overflow:hidden;height:100vh;height:100dvh}
+.monde{position:fixed;inset:0;touch-action:none;cursor:grab}.monde:active{cursor:grabbing}
+.monde canvas{display:block}
+.seuil{position:fixed;inset:0;z-index:10;display:grid;place-items:end start;padding:clamp(16px,4vw,56px);background:linear-gradient(90deg,rgba(5,8,28,.82),rgba(5,8,28,.15) 62%);color:#fff;transition:opacity .8s ease,transform .9s var(--volet);overflow:auto}
+.seuil.part{opacity:0;transform:scale(1.06);pointer-events:none}
+.seuil-carte{max-width:560px;animation:apparait 1s var(--sortie) both}
+.seuil h1{font:italic 400 clamp(3.2rem,2rem + 6vw,6.6rem)/1 var(--f-titre);color:var(--feu)}
+.seuil-carte>p{margin-top:12px;color:rgba(255,255,255,.84)}
+.seuil-contes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:6px;margin:18px 0}
+.seuil-contes button{padding:9px 12px;min-height:50px;text-align:left;border:1px solid rgba(255,255,255,.24);border-radius:9px;background:rgba(8,14,44,.5);font-size:.93rem;font-weight:400;transition:background-color .18s ease,color .18s ease,border-color .18s ease,transform .14s ease}
+.seuil-contes button:active{transform:scale(.98)}
+.seuil-contes small{display:block;font-size:.75rem;color:var(--feu)}
+.seuil-contes button[aria-pressed="true"]{background:var(--feu);border-color:var(--feu);color:var(--nuit);font-weight:500}.seuil-contes button[aria-pressed="true"] small{color:var(--nuit)}
+.entrer-3d{gap:10px;margin-top:clamp(14px,2vw,22px);text-decoration:none;text-align:center}.entrer-3d svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linejoin:round}.texte-recit .entrer-3d{margin:0 0 14px}
+.bouton.grand{min-height:54px;padding:0 28px;font-size:1.05rem}
+.seuil-aide{font-size:.82rem;color:rgba(255,255,255,.66)!important;margin-top:12px!important}
+.seuil-retour{display:inline-block;margin-top:8px;font-size:.88rem;color:rgba(255,255,255,.76)}
+.hud{position:fixed;inset:0;z-index:9;pointer-events:none;color:#fff}
+.hud-bouton,.hud-avancer{pointer-events:auto;position:absolute;display:grid;place-items:center;min-width:46px;height:46px;border-radius:23px;background:rgba(8,14,44,.68);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(8px);color:#fff}
+.hud-bouton svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.hud>a.hud-bouton{left:16px;top:16px}
+#hud-son{right:16px;top:16px}
+.hud-bouton.vr{right:72px;top:16px;padding:0 16px;font-size:.88rem;font-weight:500;background:var(--feu);color:var(--nuit);border-color:var(--feu)}
+.hud-titre{position:absolute;left:74px;top:17px;text-shadow:0 1px 8px #000;line-height:1.25}
+.hud-titre b{display:block;font:400 1.35rem/1.1 var(--f-titre)}.hud-titre small{font-size:.78rem;color:var(--feu)}
+.hud-avancer{left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translateX(-50%);padding:0 26px;height:58px;border-radius:29px;background:rgba(238,180,79,.92);color:var(--nuit);font-weight:500;touch-action:none;user-select:none}
+.hud-phrase{position:absolute;left:50%;bottom:calc(32px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(820px,90vw);text-align:center;text-shadow:0 2px 12px #000,0 0 3px #000}
+.hud-phrase p{margin:0;text-wrap:balance}
+#hud-original{color:#eeb44f;font:400 clamp(.92rem,.84rem + .35vw,1.14rem)/1.34 var(--f-langue)}
+#hud-francais{margin-top:4px;color:#fff;font:400 clamp(1rem,.9rem + .5vw,1.3rem)/1.36 var(--f-texte)}
+@media (pointer:coarse){.hud-phrase{bottom:calc(98px + env(safe-area-inset-bottom))}}
+@media (max-height:640px){.seuil-contes{grid-template-columns:repeat(2,minmax(0,1fr))}.seuil{place-items:start}}
+
+/* Tablette et téléphone : la composition revient dans le flux */
+@media (max-width:1000px){
+  .veillee-grille,.fiche-recit,.contribution,.pied,.recueil-tete{grid-template-columns:minmax(0,1fr)}
+  .colonne-visuels,.contribution-texte{position:static}
+  .scene-carte{min-height:0}
+  #carte-svg{width:92%;transform:rotateX(32deg) rotateZ(-4deg);margin-block:-2% 6%}
+  .aplatie #carte-svg{margin-block:0}
+  .hologramme,.hologramme.gauche{position:static;width:100%;margin-top:10px;transform-origin:50% 0}
+  .carte-pied{justify-content:flex-start;text-align:left}
+  .ecoute{max-width:none}
+  .voyage{height:auto}
+  .voyage-scene{position:static;height:auto;grid-template-columns:minmax(0,1fr);padding:clamp(50px,9vw,80px) var(--marge)}
+  .voyage-images{position:static;order:2;height:auto;width:100%;aspect-ratio:auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;box-shadow:none;border-radius:0;overflow:visible}
+  .voyage-images img{position:static;aspect-ratio:3/4;height:auto;border-radius:8px}
+  .voyage-etapes li{opacity:1}.voyage-etapes li::before{background:var(--feu)}
+  .voyage-etapes span{max-height:none}
+  .lieux{height:auto!important}
+  .lieux-epingle{position:static;height:auto;overflow:visible;padding:clamp(50px,9vw,80px) 0}
+  .lieux-rail{width:auto;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:10px;scrollbar-width:none}
+  .lieu-photo{scroll-snap-align:center;width:min(78vw,420px)}.lieu-photo:nth-child(even){margin-top:0}
+  .mouvement-videos{grid-template-columns:minmax(0,1fr)}
+  .video-danse:first-child video{max-height:70vh;width:auto;max-width:100%}
+  .pied,.sources-groupe{grid-template-columns:minmax(0,1fr)}
+  .carte-recit{rotate:none}
+  .lueur{display:none}
+}
+@media (max-width:900px){
+  .menu-bouton{display:block}
+  .entete nav{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;gap:6px;padding:0 var(--marge);background:var(--nuit);font-size:clamp(1.7rem,7vw,2.4rem);font-weight:200;visibility:hidden;clip-path:circle(0% at calc(100% - 42px) 36px);transition:clip-path .6s var(--volet),visibility 0s .6s}
+  .entete.ouvert nav{visibility:visible;clip-path:circle(150% at calc(100% - 42px) 36px);transition:clip-path .6s var(--volet)}
+  .entete nav a{color:#fff;padding:8px 0}.entete nav a::after{display:none}
+  .entete.ouvert{background:transparent;backdrop-filter:none;box-shadow:none}
+}
+@media (max-width:620px){
+  .liste-regions{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;margin-inline:calc(var(--marge)*-1);padding-inline:var(--marge);padding-bottom:6px;scrollbar-width:none}
+  .liste-regions::-webkit-scrollbar{display:none}
+  .bouton-region{flex:none;scroll-snap-align:start}
+  .etape-num{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .balayage-ecran,.braises,.lueur{display:none}
+  .voyage{height:auto}.voyage-scene{position:static;height:auto}.voyage-images img:not(:first-child){display:none}
+  .lieux-epingle{position:static;height:auto}.lieux-rail{width:auto;overflow-x:auto}
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+}
