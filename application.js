@@ -264,6 +264,15 @@ function brancherVoix(racine, surTemps) {
   const barre = bloc.querySelector('.voix-barre');
   const temps = bloc.querySelector('.voix-temps');
   const nom = jouer.getAttribute('aria-label').replace(/^Écouter /, '');
+  const erreurVoix = document.createElement('p');
+  erreurVoix.className = 'erreur-voix';
+  erreurVoix.setAttribute('role', 'alert');
+  erreurVoix.hidden = true;
+  bloc.after(erreurVoix);
+  const signalerErreur = () => {
+    erreurVoix.textContent = 'Cet enregistrement est indisponible. Vous pouvez réessayer ou lire le texte.';
+    erreurVoix.hidden = false;
+  };
   const majTemps = () => {
     const avance = audio.duration ? audio.currentTime / audio.duration : 0;
     barre.value = String(Math.round(avance * 1000));
@@ -271,8 +280,13 @@ function brancherVoix(racine, surTemps) {
     temps.textContent = audio.duration ? `${duree(audio.currentTime)} / ${duree(audio.duration)}` : duree(audio.currentTime);
     surTemps?.(audio.currentTime, avance);
   };
-  jouer.addEventListener('click', () => { if (audio.paused) audio.play().catch(() => {}); else audio.pause(); });
-  audio.addEventListener('play', () => { bloc.classList.add('joue'); jouer.innerHTML = ICONES.pause; jouer.setAttribute('aria-label', `Mettre en pause ${nom}`); });
+  jouer.addEventListener('click', () => {
+    if (!audio.paused) { audio.pause(); return; }
+    erreurVoix.hidden = true;
+    audio.play().catch((erreur) => { if (erreur.name !== 'AbortError') signalerErreur(); });
+  });
+  audio.addEventListener('error', signalerErreur);
+  audio.addEventListener('play', () => { erreurVoix.hidden = true; bloc.classList.add('joue'); jouer.innerHTML = ICONES.pause; jouer.setAttribute('aria-label', `Mettre en pause ${nom}`); });
   audio.addEventListener('pause', () => { bloc.classList.remove('joue'); jouer.innerHTML = ICONES.jouer; jouer.setAttribute('aria-label', `Écouter ${nom}`); });
   audio.addEventListener('timeupdate', majTemps);
   audio.addEventListener('seeked', majTemps);
@@ -368,11 +382,12 @@ const imageCouverture = (recit) => (recit.photo ? `/images/${recit.photo.fichier
 function carteRecit(recit) {
   const lieu = etat.lieux.get(recit.lieuId);
   const langue = recit.audio?.[0]?.langue;
+  const lieuMediation = recit.statutEditorial.includes('Le lieu de collecte n’est pas indiqué');
   return `<button type="button" class="carte-recit revele" data-id="${recit.id}">
     <span class="couverture${recit.photo ? ' photo' : ''}"><img src="${imageCouverture(recit)}" alt="" loading="lazy">
       <span class="couverture-titre"><small>${GENRES[recit.genre]}${langue ? ` en ${esc(langue.toLowerCase())}` : ''}</small><strong>${esc(recit.titre)}</strong></span>
       <span class="couverture-reflet"></span></span>
-    <span class="corps"><span class="ou">${esc(lieu?.nom)}, région ${esc(regionDe(lieu)?.nom)}</span><span class="resume">${esc(recit.resume)}</span></span></button>`;
+    <span class="corps"><span class="ou">${esc(lieu?.nom)}, région ${esc(regionDe(lieu)?.nom)}${lieuMediation ? ' (localité de découverte ; lieu de collecte inconnu)' : ''}</span><span class="resume">${esc(recit.resume)}</span></span></button>`;
 }
 
 /* Changement de plan : un coup de pinceau d'or balaie l'image et la caméra repart. */
@@ -426,7 +441,7 @@ function lireRecit(recit, { defiler = false } = {}) {
     <div class="texte-recit cascade">
       ${recit.transcription?.length ? `<a class="bouton feu aimant entrer-3d" href="${modePublic ? '/immersion.html' : '/immersion'}?recit=${recit.id}" data-page>Vivre ce conte dans la veillée en 3D</a>` : ''}
       <p class="meta">${GENRES[recit.genre]}${langueRecit}${recit.peuple && recit.peuple !== recit.langue ? `, ${esc(recit.peuple)}` : ''}</p>
-      <p class="lieu-recit">${esc(lieu?.nom)}, province ${esc(provinceDe(lieu)?.nom)}, région ${esc(regionDe(lieu)?.nom)}</p>
+      <p class="lieu-recit">${recit.statutEditorial.includes('Le lieu de collecte n’est pas indiqué') ? 'Localité de découverte — Lieu de collecte inconnu : ' : ''}${esc(lieu?.nom)}, province ${esc(provinceDe(lieu)?.nom)}, région ${esc(regionDe(lieu)?.nom)}</p>
       ${recit.titreOriginal && recit.titreOriginal !== recit.titre ? `<p class="titre-original" lang="${esc(recit.codeLangue)}">${esc(recit.titreOriginal)}</p>` : ''}
       <p class="passage${audioSeul ? ' court' : ''}" aria-live="polite"></p>
       ${audioSeul ? '' : `<div class="progression" role="group" aria-label="Passages du récit">${etapes.map((_, i) => `<button type="button" aria-label="Aller au passage ${i + 1}"></button>`).join('')}</div>
