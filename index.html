@@ -53,7 +53,7 @@
     </a>
     <button class="menu-bouton" id="menu-bouton" type="button" aria-expanded="false" aria-controls="navigation"><span class="visuel-cache">Menu</span><i></i><i></i></button>
     <nav id="navigation" aria-label="Navigation principale">
-      <a href="#carte">La carte</a><a href="#recueil">Le recueil</a><a href="#sagesse">Paroles de sagesse</a><a href="/sources.html" data-page>Sources</a>
+      <a href="#carte">La carte</a><a href="/immersion.html" data-page>La veillée en 3D</a><a href="#recueil">Le recueil</a><a href="#sagesse">Paroles de sagesse</a><a href="/sources.html" data-page>Sources</a>
     </nav>
   </header>
 
@@ -67,7 +67,7 @@
           <h1 id="titre"><span class="ligne-titre"><span class="mot"><span>Le</span></span> <span class="mot"><span>Faso</span></span> <span class="mot"><span>se</span></span> <span class="mot"><span>raconte</span></span></span>
             <em class="ligne-titre"><span class="mot"><span>à</span></span> <span class="mot"><span>la</span></span> <span class="mot"><span>tombée</span></span> <span class="mot"><span>de</span></span> <span class="mot"><span>la</span></span> <span class="mot"><span>nuit</span></span></em></h1>
           <p class="chapeau">Les contes, les légendes et l’histoire du Burkina Faso, région par région, avec une carte vivante et des récits à parcourir.</p>
-
+          <a class="bouton feu aimant entrer-3d" href="/immersion.html" data-page><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 8v8l-9 5-9-5V8z M3 8l9 5 9-5 M12 13v8"/></svg>Entrer dans la veillée en 3D</a>
           <div class="ecoute" id="ecoute" aria-labelledby="titre-ecoute">
             <div class="ecoute-tete">
               <p id="titre-ecoute">Écouter en</p>
@@ -80,8 +80,8 @@
         <div class="vue-carte">
           <div class="scene-carte" id="scene">
             <svg id="carte-svg" viewBox="0 0 960 690" aria-label="Carte des 17 régions du Burkina Faso ; sélection au clic ou au clavier"><g id="formes-regions"></g><g id="points-lieux"></g></svg>
-            <div class="hologramme" id="hologramme" aria-live="polite" hidden></div>
           </div>
+          <div class="hologramme" id="hologramme" aria-live="polite" hidden></div>
           <div class="carte-pied">
             <span id="info-carte">Faites tourner la carte et choisissez une région. Chaque feu allumé est un récit.</span>
             <button id="retour-carte" class="bouton fin" type="button" hidden>Revoir tout le pays</button>
@@ -110,9 +110,14 @@
 
 
     <section id="voyage" class="voyage" aria-labelledby="titre-voyage">
-    <div class="voyage-scene"><div class="voyage-images" aria-hidden="true"><img src="/couvertures/le-lievre-et-le-puits.svg" alt=""></div>
+    <div class="voyage-scene"><div class="voyage-images" aria-hidden="true"><img src="/couvertures/le-lievre-et-le-puits.svg" alt=""><img src="/couvertures/yennenga.svg" alt=""><img src="/couvertures/ruines-de-loropeni.svg" alt=""><img src="/couvertures/cour-royale-de-tiebele.svg" alt=""></div>
     <div class="voyage-texte"><h2 id="titre-voyage" data-mots>Suivre les récits, de lieu en lieu</h2>
-    <ol class="voyage-etapes" id="voyage-etapes"><li><button type="button" data-recit="le-lievre-et-le-puits"><small>En français</small><b>Le puits commun</b><span>Un conte contemporain autour du partage de l’eau.</span></button></li></ol></div></div></section>
+    <ol class="voyage-etapes" id="voyage-etapes">
+      <li><button type="button" data-recit="le-lievre-et-le-puits"><small>Conte · en français</small><b>Le puits commun</b><span>Un conte contemporain autour du partage de l’eau.</span></button></li>
+      <li><button type="button" data-recit="yennenga"><small>Légende · en français</small><b>Yennenga, la cavalière</b><span>Une légende liée à la fondation du royaume mossi.</span></button></li>
+      <li><button type="button" data-recit="ruines-de-loropeni"><small>Histoire · en français</small><b>Les murs de pierre de Loropéni</b><span>Une mémoire de pierre dans le sud-ouest du pays.</span></button></li>
+      <li><button type="button" data-recit="cour-royale-de-tiebele"><small>Histoire · en français</small><b>Les murs qui parlent de Tiébélé</b><span>Des peintures sur les murs de la cour royale.</span></button></li>
+    </ol></div></div></section>
 
     <section id="recueil" class="recueil" aria-labelledby="titre-recueil">
       <div class="recueil-tete">

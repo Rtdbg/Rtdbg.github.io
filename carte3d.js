@@ -73,9 +73,11 @@ export function creerCarte3D(hote, { regions, lieux, langueDe, surRegion, surLie
     pivot.position.set(-CX, 0, CY);
     pivot.scale.y = 0.01;
     groupe.add(pivot);
-    const boite = new THREE.Box3().setFromObject(maille);
+    // La visée est en coordonnées monde : inclure la translation du pivot.
+    const boite = new THREE.Box3().setFromObject(pivot);
     const centre = boite.getCenter(new THREE.Vector3());
-    volumes.push({ region, pivot, maille, dessus, bord, haut, cible: haut, delai: reduit ? 0 : i * 0.06, centre, phase: i * 0.7 });
+    const taille = boite.getSize(new THREE.Vector3());
+    volumes.push({ region, pivot, maille, dessus, bord, haut, cible: haut, delai: reduit ? 0 : i * 0.06, centre, taille: Math.max(taille.x, taille.z), phase: i * 0.7 });
   });
 
   // Feux des récits : halo, flamme et braises.
@@ -135,18 +137,19 @@ export function creerCarte3D(hote, { regions, lieux, langueDe, surRegion, surLie
   // Interaction.
   const rayon = new THREE.Raycaster(), souris = new THREE.Vector2();
   let survol = null, selection = null, ouvert = false;
-  let glisse = null, azimut = 0, azimutCible = -0.16, elevation = 0.92, elevationCible = 0.92, distance = 1780, distanceCible = 1780;
+  let glisse = null, aGlisse = false, azimut = 0, azimutCible = -0.16, elevation = 0.92, elevationCible = 0.92, distance = 1780, distanceCible = 1780;
   const visee = new THREE.Vector3(), viseeCible = new THREE.Vector3(0, 10, 0);
   const pointe = (e) => { const r = rendu.domElement.getBoundingClientRect(); souris.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); };
   const sous = () => { rayon.setFromCamera(souris, camera); const t = rayon.intersectObjects(volumes.map((v) => v.maille), false)[0]; return t ? volumes.find((v) => v.maille === t.object) : null; };
   const toile = rendu.domElement;
-  toile.addEventListener('pointerdown', (e) => { glisse = { x: e.clientX, y: e.clientY, depart: azimutCible, el: elevationCible, bouge: 0 }; });
+  toile.addEventListener('pointerdown', (e) => { aGlisse = false; glisse = { x: e.clientX, y: e.clientY, depart: azimutCible, el: elevationCible, bouge: 0 }; });
   addEventListener('pointerup', () => { glisse = null; });
   toile.addEventListener('pointermove', (e) => {
     pointe(e);
     if (glisse && e.pointerType === 'mouse') {
       const dx = e.clientX - glisse.x, dy = e.clientY - glisse.y;
       glisse.bouge = Math.max(glisse.bouge, Math.abs(dx) + Math.abs(dy));
+      if (glisse.bouge > 6) aGlisse = true;
       azimutCible = glisse.depart + dx * 0.005;
       elevationCible = Math.max(0.42, Math.min(1.42, glisse.el + dy * 0.004));
       return;
@@ -155,7 +158,8 @@ export function creerCarte3D(hote, { regions, lieux, langueDe, surRegion, surLie
     if (v !== survol) { survol = v; toile.style.cursor = v ? 'pointer' : 'grab'; surSurvol?.(v?.region ?? null); }
   });
   toile.addEventListener('click', (e) => {
-    if (glisse?.bouge > 6) return;
+    // pointerup a déjà effacé glisse quand le navigateur émet click.
+    if (aGlisse) { aGlisse = false; return; }
     pointe(e);
     const v = sous();
     if (!v) return;
@@ -171,7 +175,13 @@ export function creerCarte3D(hote, { regions, lieux, langueDe, surRegion, surLie
     camera.aspect = l / h; camera.updateProjectionMatrix();
     distanceCible = selection ? distanceSelection() : (l / h < 1 ? 2300 : 1780);
   }
-  const distanceSelection = () => (hote.clientWidth / hote.clientHeight < 1 ? 1300 : 1060);
+  const distanceSelection = () => {
+    const distancePaysage = camera.aspect < 1 ? 1300 : 1060;
+    if (!selection) return distancePaysage;
+    // Les petites régions doivent être lisibles sans recadrer brutalement les grandes.
+    const champ = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
+    return Math.min(distancePaysage, Math.max(720, selection.taille / (champ * 0.24)));
+  };
   new ResizeObserver(dimensionner).observe(hote);
   dimensionner();
 

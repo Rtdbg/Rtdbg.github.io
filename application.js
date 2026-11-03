@@ -426,7 +426,7 @@ function lireRecit(recit, { defiler = false } = {}) {
         <button type="button" class="commande" data-action="suivant">${ICONES.suivant}Suivant</button>
         <button type="button" class="commande" data-action="voix" aria-pressed="false">${ICONES.voix}Écouter en français</button>
         <span class="etape-num"></span>
-      </div>`}
+      </div><p class="erreur-voix" role="alert" hidden></p>`}
       ${recit.audio?.length ? `<div class="bloc"><h3>Écouter en ${esc(recit.audio[0].langue.toLowerCase())}</h3>
         ${lecteurVoix(recit.audio[0], recit.titre)}
         <p class="voix-auteur">Voix : ${esc(recit.audio[0].auteur)}${recit.audio[0].source ? `. <a href="${esc(recit.audio[0].source)}" target="_blank" rel="noopener noreferrer">Écouter à la source</a>` : ''}</p></div>` : ''}
@@ -450,7 +450,7 @@ function lireRecit(recit, { defiler = false } = {}) {
   const bouton = (action) => zone.querySelector(`[data-action="${action}"]`);
   const voixFr = new Audio();
   voixFr.preload = 'none';
-  let etape = 0, enLecture = !audioSeul, voix = false, minuteur = null, debut = 0, delai = 0, image = null, termine = false;
+  let etape = 0, enLecture = !audioSeul, voix = false, minuteur = null, debut = 0, delai = 0, image = null, termine = false, audioEnPause = false, tempsRestant = null;
   const etiquette = (icone, texte) => { if (bouton('pause')) bouton('pause').innerHTML = `${ICONES[icone]}${texte}`; };
 
   const dureeDe = (texte) => Math.max(7000, texte.split(/\s+/).length * 330 + 2500);
@@ -475,20 +475,34 @@ function lireRecit(recit, { defiler = false } = {}) {
     };
     image = requestAnimationFrame(tick);
   }
-  function programmer() {
+  function programmer(repriseRestante = null) {
     clearTimeout(minuteur); cancelAnimationFrame(image);
     if (!enLecture || audioSeul) return;
     if (voix) { parler(); return; }
-    delai = dureeDe(etapes[etape]); debut = performance.now();
+    delai = dureeDe(etapes[etape]);
+    const restant = repriseRestante === null ? delai : Math.max(1, repriseRestante);
+    debut = performance.now() - (delai - restant);
     suivreAvance();
-    minuteur = setTimeout(() => { if (etape < etapes.length - 1) { etape++; afficher(); programmer(); } else terminer(); }, delai);
+    minuteur = setTimeout(() => { if (etape < etapes.length - 1) { etape++; afficher(); programmer(); } else terminer(); }, restant);
+  }
+  function echecVoix(erreur) {
+    if (erreur?.name === 'AbortError' || !voix || lecteur?.id !== recit.id) return;
+    voix = false; audioEnPause = false;
+    voixFr.pause(); voixFr.onended = null; voixFr.onerror = null;
+    bouton('voix').setAttribute('aria-pressed', 'false');
+    const message = zone.querySelector('.erreur-voix');
+    message.textContent = 'La lecture audio est indisponible. Le récit continue sans son.';
+    message.hidden = false;
+    if (enLecture) programmer();
   }
   function parler() {
+    audioEnPause = false;
     voixFr.pause();
     voixFr.src = `/audio/fr-${recit.voixFrHumaine ? 'voix-' : ''}${recit.id}-${etape + 1}.mp3`;
     // Le passage suivant n'arrive qu'à la fin de la piste : la voix n'est plus coupée.
     voixFr.onended = () => { if (!voix || !enLecture || lecteur?.id !== recit.id) return; if (etape < etapes.length - 1) { etape++; afficher(); parler(); } else { voix = false; bouton('voix').setAttribute('aria-pressed', 'false'); terminer(); } };
-    voixFr.play().catch(() => {});
+    voixFr.onerror = echecVoix;
+    voixFr.play().catch(echecVoix);
   }
   function terminer() {
     enLecture = false; termine = true; clearTimeout(minuteur); cancelAnimationFrame(image);
@@ -496,6 +510,8 @@ function lireRecit(recit, { defiler = false } = {}) {
     etiquette('relire', 'Relire');
   }
   function mettreEnPause() {
+    audioEnPause = voix && Boolean(voixFr.src);
+    tempsRestant = !voix && !audioSeul ? Math.max(1, delai - (performance.now() - debut)) : null;
     enLecture = false; clearTimeout(minuteur); cancelAnimationFrame(image);
     voixFr.pause();
     etiquette('jouer', 'Reprendre');
@@ -503,9 +519,12 @@ function lireRecit(recit, { defiler = false } = {}) {
   function reprendre() {
     enLecture = true; termine = false;
     etiquette('pause', 'Pause');
-    programmer();
+    const restant = tempsRestant; tempsRestant = null;
+    if (voix && audioEnPause) { audioEnPause = false; voixFr.play().catch(() => {}); }
+    else programmer(restant);
   }
   function aller(n) { // un saut manuel remet le minuteur à zéro
+    audioEnPause = false; tempsRestant = null;
     etape = Math.max(0, Math.min(etapes.length - 1, n));
     afficher();
     voixFr.pause();
@@ -523,6 +542,8 @@ function lireRecit(recit, { defiler = false } = {}) {
     barres.forEach((b, i) => b.addEventListener('click', () => aller(i)));
     bouton('voix')?.addEventListener('click', (e) => {
       voix = !voix;
+      audioEnPause = false; tempsRestant = null;
+      zone.querySelector('.erreur-voix').hidden = true;
       e.currentTarget.setAttribute('aria-pressed', String(voix));
       voixFr.pause();
       if (voix && !enLecture) { enLecture = true; termine = false; etiquette('pause', 'Pause'); }
@@ -843,5 +864,7 @@ demarrer().catch((erreur) => {
   console.error(erreur);
   document.documentElement.classList.add('pret');
   document.querySelector('.chargement')?.remove();
-  $('#liste-regions').innerHTML = '<p class="statut erreur">La carte n’a pas pu être chargée. Vérifiez que le serveur est démarré (npm start).</p>';
+  $('#liste-regions').innerHTML = modePublic
+    ? '<p class="statut erreur">La carte n’a pas pu être chargée. Réessayez plus tard.</p>'
+    : '<p class="statut erreur">La carte n’a pas pu être chargée. Vérifiez que le serveur est démarré (npm start).</p>';
 });

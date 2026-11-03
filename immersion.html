@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="fr" data-public="oui">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#050b22">
+  <title>La veillée en 3D | Les voix du Faso</title>
+  <meta name="description" content="Entrez dans un village en 3D, marchez autour du feu et écoutez un conte du Burkina Faso, sur écran ou au casque de réalité virtuelle.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Lexend:wght@200..700&family=Noto+Serif:wght@400;600&display=swap">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/immersion.js"></script>
+</head>
+<body class="page-immersion">
+  <div id="monde" class="monde"></div>
+
+  <div id="seuil" class="seuil">
+    <div class="seuil-carte">
+      <h1 id="seuil-titre">La veillée</h1>
+      <p id="seuil-texte">Un village, la nuit, autour du feu. Marchez librement : la voix française de synthèse vient du feu, et s’atténue quand vous vous éloignez.</p>
+      <div id="seuil-contes" class="seuil-contes" role="group" aria-label="Choisir un récit"></div>
+      <button id="entrer" class="bouton feu grand" type="button">Entrer dans la veillée</button>
+      <p class="seuil-aide">Le texte français suit la lecture de synthèse, étape par étape, à l’écran comme dans le casque. Son conseillé. Sur ordinateur : flèches ou ZQSD pour marcher, souris pour regarder. Sur téléphone : glissez pour regarder, maintenez le bouton Avancer pour marcher.</p>
+      <a class="seuil-retour" href="/">Revenir au site</a>
+    </div>
+  </div>
+
+  <div id="hud" class="hud" hidden>
+    <a class="hud-bouton" href="/" aria-label="Quitter la veillée"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></a>
+    <div class="hud-titre"><b id="hud-titre"></b><small id="hud-langue"></small></div>
+    <button id="hud-son" class="hud-bouton" type="button" aria-label="Mettre en pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+    <button id="hud-vr" class="hud-bouton vr" type="button" hidden>Casque VR</button>
+    <button id="hud-avancer" class="hud-avancer" type="button" aria-pressed="false">Avancer</button>
+    <div id="hud-phrase" class="hud-phrase" aria-live="off"><p id="hud-original"></p><p id="hud-francais" lang="fr"></p></div>
+    <p id="hud-erreur" class="hud-erreur" role="alert" hidden></p>
+  </div>
+  <noscript><p style="color:#fff;padding:24px">La veillée en 3D a besoin de JavaScript.</p></noscript>
+</body>
+</html>
