@@ -7,7 +7,7 @@ const esc = (texte) => String(texte ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&
 const pluriel = (n, mot, motPluriel = mot + 's') => `${n} ${n > 1 ? motPluriel : mot}`;
 const GENRES = { conte: 'Conte', legende: 'Légende', histoire: 'Histoire' };
 const modePublic = document.documentElement.dataset.public === 'oui';
-const LANGUES = modePublic ? {} : { Mooré: 'marigot-tari', Dioula: 'hyene-et-bouc', Fulfulde: 'yaare-e-fowru' }; // contes disponibles dans la version locale
+const LANGUES = { Mooré: 'marigot-tari', Dioula: 'hyene-et-bouc', Fulfulde: 'yaare-e-fowru' };
 const ICONES = {
   jouer: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5 V19.5 L20 12Z"/></svg>',
   pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>',
@@ -59,7 +59,7 @@ function dessinerCarte() {
     bouton.dataset.id = region.id;
     bouton.setAttribute('aria-label', `${region.nom}, ${n ? pluriel(n, 'récit') : 'pas encore de récit'}`);
     bouton.innerHTML = `<span>${esc(region.nom)}</span>${n ? `<small aria-hidden="true">${n}</small>` : ''}`;
-    bouton.addEventListener('click', () => selectionnerRegion(region));
+    bouton.addEventListener('click', () => selectionnerRegion(region, { defiler: true }));
     $('#liste-regions').append(bouton);
   }
   dessinerMarqueurs();
@@ -77,7 +77,7 @@ function demarrerCarte3D() {
       reduit
     });
     $('#scene').classList.add('en-3d');
-    if (!modePublic) carte3d.ecouter(etat.ecoute, recitParId(LANGUES[etat.ecoute]).lieuId);
+    carte3d.ecouter(etat.ecoute, recitParId(LANGUES[etat.ecoute]).lieuId);
   } catch (e) { console.warn('Carte 3D indisponible', e); carte3d = null; }
 }
 const provincesDe = (region) => etat.provinces.filter((p) => p.regionId === region.id);
@@ -101,7 +101,7 @@ function dessinerMarqueurs() {
     const doc = recits.length > 0;
     const r = grand ? (doc ? 10 : 7) : (doc ? 6.5 : 2.6);
     const dansLangue = !grand && recits.some((recit) => recit.audio?.[0]?.langue === etat.ecoute);
-    const eteint = !modePublic && !grand && doc && !dansLangue;
+    const eteint = !grand && doc && !dansLangue;
     const voix = !grand && lieu.id === enVoix;
     if (doc) {
       const halo = document.createElementNS(ns, 'circle');
@@ -141,13 +141,24 @@ function selectionnerRegion(region, { defiler = false } = {}) {
   document.querySelectorAll('.bouton-region').forEach((b) => b.classList.toggle('actif', b.dataset.id === region?.id));
   $('#retour-carte').hidden = !region;
   carte3d?.choisir(region);
-  if (region) { const b = document.querySelector(`.forme-region[data-id="${region.id}"]`)?.getBBox(); if (b) setTimeout(() => onde(b.x + b.width / 2, b.y + b.height / 2), 120); }
+  const boite = region && document.querySelector(`.forme-region[data-id="${region.id}"]`)?.getBBox();
+  if (!carte3d) {
+    const svg = $('#carte-svg');
+    if (!boite) svg.setAttribute('viewBox', '0 0 960 690');
+    else {
+      // Conserver le rapport du pays tout en visant la région dans le repli SVG.
+      const largeur = Math.min(960, Math.max(320, Math.max(boite.width, boite.height * 960 / 690) * 3));
+      const hauteur = largeur * 690 / 960;
+      svg.setAttribute('viewBox', `${boite.x + boite.width / 2 - largeur / 2} ${boite.y + boite.height / 2 - hauteur / 2} ${largeur} ${hauteur}`);
+    }
+  }
+  if (boite) setTimeout(() => onde(boite.x + boite.width / 2, boite.y + boite.height / 2), 120);
   $('#info-carte').textContent = region ? `${region.nom} : choisissez une localité.` : TEXTE_CARTE;
   $('#scene').querySelector('#points-lieux').classList.remove('pret-feux');
   dessinerMarqueurs();
   afficherHologramme();
   afficherListeLieux();
-  if (defiler && region) $('#carte').scrollIntoView({ block: 'start' });
+  if (defiler && region) scene.scrollIntoView({ block: 'center', behavior: reduit ? 'instant' : 'smooth' });
 }
 
 function afficherHologramme() {
@@ -192,7 +203,6 @@ function afficherListeLieux() {
 
 /* ===================== Écouter dès l'accueil ===================== */
 function afficherLangues() {
-  if (modePublic) { $('#ecoute').hidden = true; return; }
   const zone = $('#langues');
   zone.innerHTML = Object.keys(LANGUES).map((l) => `<button type="button" data-langue="${l}" aria-pressed="${l === etat.ecoute}">${l}</button>`).join('');
   zone.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => choisirLangue(b.dataset.langue)));
@@ -414,7 +424,7 @@ function lireRecit(recit, { defiler = false } = {}) {
       ${recit.photo ? `<figure class="photo-recit revele"><img src="/images/${esc(recit.photo.fichier)}" alt="${esc(recit.photo.legende)}" loading="lazy"><figcaption><b>${esc(recit.photo.legende)}.</b> Photo de ${esc(recit.photo.auteur)}, <a href="${esc(recit.photo.url)}" target="_blank" rel="noopener noreferrer">${esc(recit.photo.licence)}</a>.</figcaption></figure>` : ''}
     </div>
     <div class="texte-recit cascade">
-      ${recit.transcription?.length ? `<a class="bouton feu aimant entrer-3d" href="/immersion?recit=${recit.id}" data-page>Vivre ce conte dans la veillée en 3D</a>` : ''}
+      ${recit.transcription?.length ? `<a class="bouton feu aimant entrer-3d" href="${modePublic ? '/immersion.html' : '/immersion'}?recit=${recit.id}" data-page>Vivre ce conte dans la veillée en 3D</a>` : ''}
       <p class="meta">${GENRES[recit.genre]}${langueRecit}${recit.peuple && recit.peuple !== recit.langue ? `, ${esc(recit.peuple)}` : ''}</p>
       <p class="lieu-recit">${esc(lieu?.nom)}, province ${esc(provinceDe(lieu)?.nom)}, région ${esc(regionDe(lieu)?.nom)}</p>
       ${recit.titreOriginal && recit.titreOriginal !== recit.titre ? `<p class="titre-original" lang="${esc(recit.codeLangue)}">${esc(recit.titreOriginal)}</p>` : ''}

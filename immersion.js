@@ -11,7 +11,7 @@ let recits;
 try {
   const reponse = await fetch(modePublic ? '/api/recits.json' : '/api/recits');
   if (!reponse.ok) throw new Error('Impossible de charger les récits de la veillée.');
-  recits = (await reponse.json()).filter((r) => modePublic ? r.etapes?.length : r.transcription?.length);
+  recits = (await reponse.json()).filter((r) => modePublic ? r.etapes?.length || r.audio?.length : r.transcription?.length);
   if (!recits.length) throw new Error('Aucun récit disponible pour la veillée.');
 } catch (erreur) {
   $('#seuil-texte').textContent = 'Les récits sont momentanément indisponibles. Revenez à la carte et réessayez plus tard.';
@@ -21,7 +21,7 @@ try {
 let recit = recits.find((r) => r.id === parametres.get('recit')) ?? recits.find((r) => r.film) ?? recits[0];
 
 function afficherChoix() {
-  $('#seuil-contes').innerHTML = recits.map((r) => `<button type="button" data-id="${r.id}" aria-pressed="${r.id === recit.id}"><small>${modePublic ? 'Lecture française de synthèse' : `En ${r.langue.toLowerCase()}`}</small>${r.titre}</button>`).join('');
+  $('#seuil-contes').innerHTML = recits.map((r) => `<button type="button" data-id="${r.id}" aria-pressed="${r.id === recit.id}"><small>${r.audio?.length ? `Voix en ${r.langue}` : 'Lecture française de synthèse'}</small>${r.titre}</button>`).join('');
   $('#seuil-contes').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => {
     recit = recits.find((r) => r.id === b.dataset.id);
     afficherChoix();
@@ -309,18 +309,18 @@ let media = null, positionnel = null, ecoute = null, ctx = null, numeroEtape = 0
 function signalerErreurLecture(erreur) {
   if (!modePublic || erreur?.name === 'AbortError') return;
   const message = $('#hud-erreur');
-  message.textContent = 'La lecture audio est indisponible. Le texte reste accessible sur la page d’accueil.';
+  message.textContent = 'La lecture est indisponible. Revenez à la fiche du récit sur la carte pour réessayer.';
   message.hidden = false;
   if (erreur?.type === 'error') $('#hud-son').disabled = true;
 }
 function lancerConte() {
-  const video = !modePublic && recit.film ? document.createElement('video') : null;
+  const video = recit.film ? document.createElement('video') : null;
   media = video ?? new Audio();
   numeroEtape = 0;
-  media.src = modePublic ? `/audio/fr-${recit.id}-1.mp3` : recit.film ? `/films/${recit.film}` : `/audio/${recit.audio[0].fichier}`;
-  media.crossOrigin = 'anonymous'; media.playsInline = true; media.preload = 'auto'; media.loop = !modePublic;
+  media.src = recit.film ? `/films/${recit.film}` : recit.audio?.length ? `/audio/${recit.audio[0].fichier}` : `/audio/fr-${recit.id}-1.mp3`;
+  media.crossOrigin = 'anonymous'; media.playsInline = true; media.preload = 'auto'; media.loop = Boolean(recit.audio?.length);
   if (modePublic) media.addEventListener('error', signalerErreurLecture);
-  if (modePublic) media.addEventListener('ended', () => {
+  if (modePublic && !recit.audio?.length) media.addEventListener('ended', () => {
     if (numeroEtape + 1 < recit.etapes.length) {
       numeroEtape++;
       media.src = `/audio/fr-${recit.id}-${numeroEtape + 1}.mp3`;
@@ -429,13 +429,13 @@ rendu.setAnimationLoop(() => {
   geoL.attributes.position.needsUpdate = true;
 
   if (media && recit) {
-    if (modePublic) poserTexte('', recit.etapes[numeroEtape]);
-    else {
+    if (modePublic && !recit.audio?.length) poserTexte('', recit.etapes[numeroEtape]);
+    else if (recit.transcription?.length) {
       const instant = media.currentTime, apresTitre = !recit.film || instant > 4; // Le film ouvre sur son titre.
       const s = recit.transcription.findLast((x) => x.debut <= instant);
       const fr = recit.sousTitresFr?.findLast((x) => x.debut <= instant);
       poserTexte(s && apresTitre ? s.texte : '', fr && apresTitre && instant < fr.fin ? fr.texte : '');
-    }
+    } else poserTexte('', 'Enregistrement de Rasmane Bassam en mooré : transcription non disponible.');
   }
   placerPanneau(dt);
   rendu.render(scene, camera);
@@ -447,8 +447,8 @@ $('#entrer').addEventListener('click', () => {
   setTimeout(() => $('#seuil').remove(), 900);
   $('#hud').hidden = false;
   $('#hud-titre').textContent = recit.titre;
-  $('#hud-langue').textContent = modePublic ? 'Lecture française de synthèse' : `Conte en ${recit.langue.toLowerCase()}`;
-  $('#hud-original').lang = modePublic ? 'fr' : recit.codeLangue;
+  $('#hud-langue').textContent = recit.audio?.length ? `Voix en ${recit.langue}` : 'Lecture française de synthèse';
+  $('#hud-original').lang = recit.codeLangue || 'fr';
   $('#hud-phrase').hidden = apercuCasque;
   depart = true;
   porteur.position.set(0, 0, 7.2); lacet = 0; tangage = -0.06;

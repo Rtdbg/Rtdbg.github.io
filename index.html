@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0a1530">
   <title>Les voix du Faso : Contes, légendes et mémoires du Burkina Faso</title>
-  <meta name="description" content="Carte interactive des contes, légendes et récits historiques du Burkina Faso : 17 régions, 47 chefs-lieux, récits illustrés et carte interactive.">
+  <meta name="description" content="Carte interactive des contes, légendes et récits historiques du Burkina Faso : 17 régions, 47 chefs-lieux, récits illustrés et contes à écouter en mooré, dioula et fulfulde.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,7 +39,7 @@
     <div class="rideau"><i></i><i></i><i></i><i></i><i></i></div>
     <div class="chargement-contenu">
       <p class="chargement-nom"><span class="fantome">Les voix du Faso</span><span class="rempli">Les voix du Faso</span></p>
-      <p class="chargement-etape"><span id="chargement-compteur">000</span> <span id="chargement-mot">Faso</span></p>
+      <p class="chargement-etape"><span id="chargement-compteur">000</span> <span id="chargement-mot">Mooré</span></p>
     </div>
   </div>
 
@@ -66,7 +66,7 @@
         <div class="veillee-texte">
           <h1 id="titre"><span class="ligne-titre"><span class="mot"><span>Le</span></span> <span class="mot"><span>Faso</span></span> <span class="mot"><span>se</span></span> <span class="mot"><span>raconte</span></span></span>
             <em class="ligne-titre"><span class="mot"><span>à</span></span> <span class="mot"><span>la</span></span> <span class="mot"><span>tombée</span></span> <span class="mot"><span>de</span></span> <span class="mot"><span>la</span></span> <span class="mot"><span>nuit</span></span></em></h1>
-          <p class="chapeau">Les contes, les légendes et l’histoire du Burkina Faso, région par région, avec une carte vivante et des récits à parcourir.</p>
+          <p class="chapeau">Les contes, les légendes et l’histoire du Burkina Faso, région par région, avec de vraies voix en mooré, en dioula et en fulfulde.</p>
           <a class="bouton feu aimant entrer-3d" href="/immersion.html" data-page><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 21 8v8l-9 5-9-5V8z M3 8l9 5 9-5 M12 13v8"/></svg>Entrer dans la veillée en 3D</a>
           <div class="ecoute" id="ecoute" aria-labelledby="titre-ecoute">
             <div class="ecoute-tete">
@@ -122,7 +122,7 @@
     <section id="recueil" class="recueil" aria-labelledby="titre-recueil">
       <div class="recueil-tete">
         <h2 id="titre-recueil" data-mots>Le recueil</h2>
-        <p>Dix récits, du conte de veillée à l’histoire du pays. Chaque fiche dit d’où vient le récit et ce qu’on en sait.</p>
+        <p>Dix-neuf récits, du conte de veillée à l’histoire du pays. Chaque fiche dit d’où vient le récit et ce qu’on en sait.</p>
       </div>
 
       <div class="filtres" id="filtres" role="group" aria-label="Filtrer par genre ou par langue"></div>
@@ -145,9 +145,23 @@
     </section>
 
     <section id="sagesse" class="sagesse" aria-labelledby="titre-sagesse">
-    <canvas class="braises" aria-hidden="true"></canvas><h2 id="titre-sagesse" class="visuel-cache">Paroles de sagesse</h2>
-    <figure class="citation"><blockquote id="citation-texte">Chaque lieu garde des récits à transmettre.</blockquote><figcaption>Les voix du Faso</figcaption></figure>
-  </section>
+      <canvas class="braises" aria-hidden="true"></canvas>
+      <h2 id="titre-sagesse" class="visuel-cache">Paroles de sagesse</h2>
+      <figure class="citation">
+        <blockquote id="citation-texte">En Afrique traditionnelle, quand un vieillard meurt, c’est comme toute une bibliothèque qui brûle.</blockquote>
+        <figcaption>Amadou Hampâté Bâ (Mali, 1901-1991), citation reprise dans la vidéo ci-dessous.</figcaption>
+      </figure>
+      <div class="sagesse-grille">
+        <figure class="video-sagesse">
+          <video controls preload="metadata" src="/video/citations-hampate-ba.mp4" aria-label="Citations d’Amadou Hampâté Bâ"></video>
+          <figcaption><b>Les citations d’Amadou Hampâté Bâ.</b> Vidéo de la chaîne LawguureFulfuldeTV, trouvée en ligne.</figcaption>
+        </figure>
+        <figure class="video-sagesse">
+          <video controls preload="metadata" src="/video/proverbes-fulfulde.mp4" aria-label="Dix proverbes en fulfulde"></video>
+          <figcaption><b>Dix proverbes en fulfulde à méditer.</b> Vidéo de Zanga School, trouvée en ligne. Proverbes de langue peule, sans lien avec une localité précise.</figcaption>
+        </figure>
+      </div>
+    </section>
 
 
 
@@ -157,10 +171,16 @@
   <footer id="sources" class="pied">
     <div class="pied-tete">
       <h2 data-mots>Merci à celles et ceux qui ont transmis</h2>
-      <p>Ce site s’appuie sur des images et des recherches documentées. Leurs auteurs sont nommés sur la page des sources.</p>
+      <p>Notre site s’appuie sur des voix, des images et des recherches trouvées en ligne. Leurs auteurs sont nommés sur la page des sources.</p>
       <a class="bouton feu aimant" href="/sources.html" data-page>Voir toutes les sources</a>
     </div>
-    <ul class="credits-courts"><li><b>Wikimedia Commons</b>photos et vidéos créditées</li><li><b>IGB et OCHA</b>carte des 17 régions</li><li><b>Le groupe du projet</b>récits, illustrations et couvertures</li></ul>
+    <ul class="credits-courts">
+      <li><b>Mooré Burkina Faso</b>voix et textes des contes</li>
+      <li><b>Rasmané Compaoré, dit Rasmane Bassam</b>histoires drôles en mooré</li>
+      <li><b>Wikimedia Commons</b>photos et vidéos sous licence libre</li>
+      <li><b>IGB et OCHA</b>carte des 17 régions</li>
+      <li><b>UNESCO</b>Loropéni et Tiébélé</li>
+    </ul>
     <p class="mention">Les voix du Faso, projet Technologies Web et Multimédia, 2026. Illustrations, couvertures, 3D et montages créés par notre groupe.</p>
   </footer>
   <a class="haut-page" id="haut-page" href="#carte" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19 V5 M6 11 L12 5 L18 11"/></svg></a>
