@@ -144,6 +144,35 @@ const SCENES = {
     ${et([3], `<g fill="none" stroke="${C.vert}" stroke-width="5" stroke-linecap="round"><path class="anim-trace" d="M80 310 Q100 250 90 200 Q110 180 120 166"/><path class="anim-trace" d="M230 310 Q210 240 250 210 Q240 186 262 170"/><path class="anim-trace" d="M360 310 Q380 260 350 230 Q370 210 380 196"/><path class="anim-trace" d="M490 310 Q470 260 500 220"/></g>`)}
     ${et([4], place(440, 96, 0.85, `<circle r="52" fill="${C.toile}" stroke="${C.encre}" stroke-width="4"/><circle r="40" fill="none" stroke="${C.ocre}" stroke-width="2.25" stroke-dasharray="6 5" class="anim-tourne"/>${texte(0, 8, '2009', 26)}`) + texte(440, 176, 'Patrimoine mondial', 20))}`,
 
+  diebougou: () => `
+    ${et([1, 2, 4], ciel())}${et([1, 2, 4], soleil(530, 64, 24))}${et([3], nuit() + lune(520, 66))}
+    ${sol(304)}${arbre(56, 304, 0.9)}
+    <path d="M96 306 Q130 214 196 174 Q250 130 330 126 Q414 122 466 166 Q530 220 566 306Z" fill="#b5532f" stroke="${C.encre}" stroke-width="2.25"/><path d="M96 306 Q130 214 196 174 Q250 130 330 126 Q414 122 466 166 Q530 220 566 306Z" fill="url(#p-points)" opacity=".35"/>
+    ${et([2, 3, 4], `<circle cx="318" cy="276" r="46" fill="${C.mil}" opacity=".3" class="anim-pulse"/>`)}
+    <path d="M286 306 V250 Q318 212 350 250 V306Z" fill="${C.encre}"/>
+    ${et([1], `<g class="anim-pulse">${texte(318, 196, '?', 40)}</g>` + texte(300, 82, '« Le trou de la guerre »', 26))}
+    ${et([2], [0, 1, 2].map((i) => g('anim-marche', personne(140 + i * 62, 352, 0.9, { habit: [C.ocre, C.indigo, C.vert][i] }) + `<ellipse cx="${140 + i * 62}" cy="276" rx="14" ry="10" fill="${C.terre}" stroke="${C.encre}" stroke-width="2"/>`, `style="animation-delay:${i * 0.3}s"`)).join('') + texte(300, 82, 'Pendant la colonisation ?', 24))}
+    ${et([3], personne(470, 352, 0.95, { habit: C.mil }) + bulle(470, 228, '« Personne n’en parle »') + texte(250, 82, '1914 – 1918 ?', 26, C.toile))}
+    ${et([4], personne(180, 352, 1, { habit: C.indigo, bras: 'avant' }) + [430, 480, 530].map((x) => personne(x, 360, 0.65, { habit: C.ocre, cls: 'anim-arrive' })).join('') + texte(300, 82, 'Une énigme à étudier', 26))}`,
+
+  diapaga: () => `${ciel()}${et([1, 2, 4], soleil(500, 70, 26))}${sol(300, '#a8784a')}
+    ${et([1], case_(80, 300, 0.9) + case_(170, 300, 0.7) + `<g class="anim-fumee">${[0, 1, 2].map((i) => `<circle cx="${110 + i * 22}" cy="${200 - i * 16}" r="${10 + i * 5}" fill="#cfc2ad" opacity=".8"/>`).join('')}</g>`
+      + [0, 1, 2].map((i) => g('anim-exil', personne(260 + i * 60, 340, 0.9, { habit: [C.ocre, C.indigo, C.vert][i] }), `style="animation-delay:${i * 0.4}s"`)).join('') + texte(300, 110, 'Bornou, XVIIᵉ siècle', 26))}
+    ${et([2, 3], eau(300, 80, '#3c5c78') + texte(520, 290, 'Niger', 18, C.encre))}
+    ${et([2], personne(110, 300, 1.1, { habit: C.indigo, bras: 'haut', cls: 'anim-geste' }) + personne(50, 300, 0.9, { habit: C.ocre }) + `<g class="anim-onde-son">${[24, 40, 56].map((r) => `<path d="M${150 + r * 0.2} ${190 - r * 0.6} a${r} ${r} 0 0 1 0 ${r * 1.2}" stroke="${C.toile}" stroke-width="2.25" fill="none"/>`).join('')}</g>` + texte(330, 120, 'Le fleuve barre la route', 24))}
+    ${et([3], `<g class="anim-flotte"><path d="M20 332 C110 312 170 352 260 330 S410 310 530 334" stroke="${C.encre}" stroke-width="28" fill="none" stroke-linecap="round"/><path d="M20 332 C110 312 170 352 260 330 S410 310 530 334" stroke="#6b5530" stroke-width="22" fill="none" stroke-linecap="round"/><path d="M20 332 C110 312 170 352 260 330 S410 310 530 334" stroke="${C.mil}" stroke-width="6" stroke-dasharray="5 16" fill="none"/><ellipse cx="550" cy="334" rx="26" ry="15" fill="#6b5530" stroke="${C.encre}" stroke-width="2.25"/><circle cx="558" cy="328" r="3" fill="${C.mil}"/><path d="M575 336 l14 -4 m-14 4 l14 5" stroke="${C.ocre}" stroke-width="2.25" stroke-linecap="round"/></g>`
+      + [0, 1, 2].map((i) => g('anim-marche', personne(170 + i * 110, 322, 0.7, { habit: [C.ocre, C.indigo, C.vert][i] }), `style="animation-delay:${i * 0.3}s"`)).join('') + texte(300, 110, 'Un boa géant', 28))}
+    ${et([4], case_(90, 300, 0.9) + case_(510, 300, 0.85) + personne(220, 345, 1.05, { habit: C.vert, bras: 'offre' }) + personne(380, 345, 1.05, { habit: C.indigo, bras: 'avant' }) + `<ellipse cx="300" cy="300" rx="16" ry="9" fill="${C.mil}" stroke="${C.encre}" stroke-width="2"/>`
+      + texte(300, 110, 'Diapaga', 30) + texte(300, 140, '« dia » homme · « kpaga » célibataire', 18))}`,
+
+  ziniare: () => `${ciel()}${soleil(520, 64, 24)}${sol(300)}${arbre(560, 300, 0.85)}
+    ${et([1, 2], case_(70, 300, 0.9) + place(250, 316, 1, `<path d="M-60 0 H60 L50 -14 H-50Z" fill="${C.terre}" stroke="${C.encre}" stroke-width="2"/>${[-36, -12, 12, 36].map((x) => `<ellipse cx="${x}" cy="-20" rx="11" ry="6" fill="${C.mil}" stroke="${C.encre}" stroke-width="1.5"/>`).join('')}`))}
+    ${et([1], personne(170, 345, 1.05, { habit: C.ocre, bras: 'offre' }) + personne(360, 345, 1, { habit: C.indigo, bras: 'avant' })
+      + `<g class="anim-pulse">${[0, 1, 2].map((i) => `<ellipse cx="${318 + i * 12}" cy="${262 - (i % 2) * 6}" rx="5" ry="3.5" fill="#fff" stroke="${C.encre}" stroke-width="1.2"/>`).join('')}</g>` + texte(300, 110, 'Des galettes contre des cauris', 24))}
+    ${et([2], personne(170, 345, 1.05, { habit: C.ocre, bras: 'haut' }) + [330, 390, 450, 510].map((x, i) => personne(x, 350 + (i % 2) * 8, 0.85, { habit: [C.indigo, C.vert, C.mil, C.ocre][i], bras: i % 2 ? 'haut' : 'bas', cls: 'anim-arrive' })).join('') + bulle(420, 214, '« Du jamais vu ! »') + texte(300, 100, 'Ziniaré', 30))}
+    ${et([3], g('anim-galop-court', cheval(250, 296, 1.15, true)) + `<g class="anim-fumee">${[0, 1, 2].map((i) => `<circle cx="${470 + i * 20}" cy="${250 - i * 14}" r="${9 + i * 5}" fill="#cfc2ad" opacity=".8"/>`).join('')}</g>` + case_(90, 300, 0.8) + texte(300, 110, 'Naaba Oubri', 30))}
+    ${et([4], place(300, 310, 1, `<path d="M-120 0 V-70 H120 V0Z" fill="#c99a6a" stroke="${C.encre}" stroke-width="2.25"/><path d="M-120 0 V-70 H120 V0Z" fill="url(#p-hachures)" opacity=".35"/>${[-90, -30, 30, 90].map((x) => `<path d="M${x} -70 V-88" stroke="${C.encre}" stroke-width="6"/>`).join('')}<path d="M-16 0 V-38 Q0 -52 16 -38 V0Z" fill="${C.encre}"/>`) + personne(470, 350, 0.85, { habit: C.indigo }) + texte(300, 120, 'Oubriyaoghin · mausolée (2002)', 24))}`,
+
   tiebele: () => `${ciel()}${soleil(530, 60, 22)}${sol(310)}
     <path d="M20 310 V250 H580 V310" fill="none" stroke="${C.encre}" stroke-width="5" stroke-dasharray="1 0"/>
     ${[['dinian', 140], ['mangolo', 300], ['draa', 460]].map(([type, x]) => {
@@ -225,7 +254,7 @@ const SCENES = {
     ${[400, 524].map((x, i) => `<text class="anim-rire" style="animation-delay:${i * 0.5}s" x="${x}" y="258" font-family="Lexend, system-ui, sans-serif" font-size="17" font-weight="500" fill="#ffe3a1" text-anchor="middle">ha ha</text>`).join('')}`
 };
 
-const AMBIANCES = { puits: 'or', yennenga: 'braise', yako: 'sahel', diaba: 'nuit', dafra: 'fleuve', bazoule: 'sahel', loropeni: 'aube', tiebele: 'or', kango: 'braise', guimbi: 'sahel', bouc: 'braise', corde: 'or', singe: 'aube', marigot: 'sahel', veillee: 'nuit', scorpion: 'braise', piqueboeuf: 'aube', conteur: 'nuit' };
+const AMBIANCES = { puits: 'or', yennenga: 'braise', yako: 'sahel', diaba: 'nuit', dafra: 'fleuve', bazoule: 'sahel', loropeni: 'aube', diebougou: 'sahel', diapaga: 'sahel', ziniare: 'or', tiebele: 'or', kango: 'braise', guimbi: 'sahel', bouc: 'braise', corde: 'or', singe: 'aube', marigot: 'sahel', veillee: 'nuit', scorpion: 'braise', piqueboeuf: 'aube', conteur: 'nuit' };
 export function illustration(cle, titre = '') {
   const nom = SCENES[cle] ? cle : 'conteur';
   palette = AMBIANCES[nom] ?? 'or';

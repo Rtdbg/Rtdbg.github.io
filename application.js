@@ -1,5 +1,6 @@
 import { illustration } from './illustrations.js';
 import { creerCarte3D, webglDisponible } from './carte3d.js';
+import { lancerVisite, visiteAuPremierPassage } from './visite.js';
 
 const ns = 'http://www.w3.org/2000/svg';
 const $ = (selecteur) => document.querySelector(selecteur);
@@ -36,9 +37,57 @@ const lieuNomme = (recit) => { const lieu = etat.lieux.get(recit.lieuId); return
 const duree = (s) => (Number.isFinite(s) ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '0:00');
 
 /* ===================== Carte ===================== */
+/* Où écrire le nom d'une région : le point du plus grand contour le plus éloigné de ses bords,
+   pour que le nom reste dans la région même quand elle est très découpée.
+   Renvoie [x, y, marge] : la marge (distance au bord le plus proche) dit si la région est petite. */
+function ancreRegion(trace) {
+  const anneaux = trace.split(/[Mm]/).map((s) => s.replace(/[LlZz]/g, ' ').trim()).filter(Boolean)
+    .map((a) => a.split(/\s+/).map((c) => c.split(',').map(Number)).filter((p) => p.length === 2 && p.every(Number.isFinite)));
+  const aire = (pts) => Math.abs(pts.reduce((s, [x, y], i) => { const [x2, y2] = pts[(i + 1) % pts.length]; return s + x * y2 - x2 * y; }, 0)) / 2;
+  const pts = anneaux.reduce((a, b) => (aire(b) > aire(a) ? b : a));
+  const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const dedans = (x, y) => {
+    let d = false;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [xi, yi] = pts[i], [xj, yj] = pts[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) d = !d;
+    }
+    return d;
+  };
+  const distanceBord = (x, y) => {
+    let m = Infinity;
+    for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+      const [ax, ay] = pts[j], [bx, by] = pts[i];
+      const l = (bx - ax) ** 2 + (by - ay) ** 2;
+      const t = l ? Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / l)) : 0;
+      m = Math.min(m, Math.hypot(x - ax - t * (bx - ax), y - ay - t * (by - ay)));
+    }
+    return m;
+  };
+  let meilleur = [(x0 + x1) / 2, (y0 + y1) / 2], score = -1;
+  for (let i = 1; i < 30; i++) for (let j = 1; j < 30; j++) {
+    const x = x0 + ((x1 - x0) * i) / 30, y = y0 + ((y1 - y0) * j) / 30;
+    if (!dedans(x, y)) continue;
+    const d = distanceBord(x, y);
+    if (d > score) { score = d; meilleur = [x, y]; }
+  }
+  return [...meilleur, score].map((v) => Math.round(v * 10) / 10);
+}
+const PETITE_REGION = 25; // marge sous laquelle le nom est écrit plus petit (Kadiogo)
+
 function dessinerCarte() {
   const formes = $('#formes-regions');
+  const noms = $('#noms-regions');
   for (const region of etat.regions) {
+    const nom = document.createElementNS(ns, 'text');
+    const petite = region.ancre[2] < PETITE_REGION;
+    // Dans une petite région, le nom passe sous le feu du chef-lieu pour ne pas être caché.
+    nom.setAttribute('x', region.ancre[0]); nom.setAttribute('y', region.ancre[1] + (petite ? 16 : 0));
+    nom.setAttribute('class', `nom-region${petite ? ' petite' : ''}`);
+    nom.dataset.id = region.id;
+    nom.textContent = region.nom;
+    noms.append(nom);
     const forme = document.createElementNS(ns, 'path');
     forme.setAttribute('d', region.trace);
     forme.setAttribute('class', 'forme-region');
@@ -69,7 +118,7 @@ function demarrerCarte3D() {
   if (!webglDisponible()) return;
   try {
     carte3d = creerCarte3D($('#scene'), {
-      regions: etat.regions.map((r) => ({ ...r, nRecits: recitsDeRegion(r).length })),
+      regions: etat.regions.map((r) => ({ ...r, nRecits: recitsDeRegion(r).length, petite: r.ancre[2] < PETITE_REGION })),
       lieux: [...etat.lieux.values()].map((l) => ({ ...l, nRecits: recitsDe(l).length })),
       langueDe: (lieu) => recitsDe(lieu).map((r) => r.audio?.[0]?.langue).filter(Boolean),
       surRegion: (region) => selectionnerRegion(region),
@@ -137,7 +186,7 @@ function selectionnerRegion(region, { defiler = false } = {}) {
   etat.region = region;
   const scene = $('#scene');
   scene.classList.toggle('aplatie', !!region);
-  document.querySelectorAll('.forme-region').forEach((f) => f.classList.toggle('selection', f.dataset.id === region?.id));
+  document.querySelectorAll('.forme-region, .nom-region').forEach((f) => f.classList.toggle('selection', f.dataset.id === region?.id));
   document.querySelectorAll('.bouton-region').forEach((b) => b.classList.toggle('actif', b.dataset.id === region?.id));
   $('#retour-carte').hidden = !region;
   carte3d?.choisir(region);
@@ -306,8 +355,8 @@ function balayer(action) {
     action();
     voile.classList.remove('entre');
     voile.classList.add('sort');
-    setTimeout(() => { voile.classList.remove('sort'); balayageEnCours = false; }, 720);
-  }, 560);
+    setTimeout(() => { voile.classList.remove('sort'); balayageEnCours = false; }, 380);
+  }, 320);
 }
 const allerA = (selecteur) => $(selecteur).scrollIntoView({ behavior: 'instant', block: 'start' });
 
@@ -331,7 +380,18 @@ function rejouerTitre(el) {
 }
 
 /* ===================== Lieux et récits ===================== */
-function montrerLecture() { $('#recit').hidden = false; voixAccueil?.pause(); }
+function montrerLecture() {
+  $('#recit').hidden = false;
+  voixAccueil?.pause();
+  $('#retour-region').textContent = `← Retour à ${etat.region ? etat.region.nom : 'la carte'}`;
+}
+/* Revenir à la vue d'ensemble ferme aussi le récit : la carte et la lecture restent d'accord. */
+function revenirAuPays() {
+  arreterLecture();
+  $('#recit').hidden = true;
+  etat.lieu = null;
+  selectionnerRegion(null);
+}
 function presenterTitre() { rejouerTitre($('#titre-recit')); observerApparitions(); }
 
 function ouvrirLieu(id, { defiler = true } = {}) {
@@ -475,7 +535,8 @@ function lireRecit(recit, { defiler = false } = {}) {
   const bouton = (action) => zone.querySelector(`[data-action="${action}"]`);
   const voixFr = new Audio();
   voixFr.preload = 'none';
-  let etape = 0, enLecture = !audioSeul, voix = false, minuteur = null, debut = 0, delai = 0, image = null, termine = false, audioEnPause = false, tempsRestant = null;
+  // Le récit attend le visiteur : il ne défile qu'après « Lancer le récit ».
+  let etape = 0, enLecture = false, voix = false, minuteur = null, debut = 0, delai = 0, image = null, termine = false, audioEnPause = false, tempsRestant = null;
   const etiquette = (icone, texte) => { if (bouton('pause')) bouton('pause').innerHTML = `${ICONES[icone]}${texte}`; };
 
   const dureeDe = (texte) => Math.max(7000, texte.split(/\s+/).length * 330 + 2500);
@@ -557,7 +618,7 @@ function lireRecit(recit, { defiler = false } = {}) {
   }
 
   if (!audioSeul) {
-    etiquette('pause', 'Pause');
+    etiquette('jouer', 'Lancer le récit');
     bouton('pause').addEventListener('click', () => {
       if (termine) { etape = 0; afficher(); reprendre(); }
       else if (enLecture) mettreEnPause(); else reprendre();
@@ -825,9 +886,10 @@ function miseEnScene() {
   addEventListener('resize', defilement);
   defilement();
 
-  // La vidéo de fond ne joue que lorsqu'elle est visible.
+  // La vidéo de fond ne joue que lorsqu'elle est visible, et jamais sur téléphone ni en économie de données.
   const videoFond = $('[data-fond]');
-  if (reduit) videoFond.removeAttribute('loop');
+  const econome = navigator.connection?.saveData || matchMedia('(max-width: 700px), (pointer: coarse)').matches;
+  if (reduit || econome) videoFond.removeAttribute('loop');
   else new IntersectionObserver(([e]) => { if (e.isIntersecting) videoFond.play().catch(() => {}); else videoFond.pause(); }).observe(videoFond);
 
   // Parallaxe : la carte et la lueur suivent le pointeur, avec inertie.
@@ -872,6 +934,7 @@ function miseEnScene() {
 async function demarrer() {
   const charger = (route) => fetch(route).then((r) => { if (!r.ok) throw new Error(route); return r.json(); });
   const [regions, provinces, lieux, recits, medias] = await Promise.all(['/api/regions.json', '/api/provinces.json', '/api/lieux.json', '/api/recits.json', '/api/medias.json'].map(charger));
+  for (const region of regions) region.ancre = ancreRegion(region.trace);
   Object.assign(etat, { regions, provinces, recits, medias, lieux: new Map(lieux.map((l) => [l.id, l])) });
   dessinerCarte();
   afficherLangues();
@@ -879,10 +942,26 @@ async function demarrer() {
   afficherParcours();
   afficherLieuxEtMouvement();
   if (!modePublic) construireFormulaire();
-  $('#retour-carte').addEventListener('click', () => { etat.lieu = null; selectionnerRegion(null); });
+  $('#retour-carte').addEventListener('click', revenirAuPays);
+  $('#retour-region').addEventListener('click', () => {
+    arreterLecture();
+    $('#recit').hidden = true;
+    etat.lieu = null;
+    dessinerMarqueurs();
+    afficherListeLieux();
+    $('#carte').scrollIntoView({ behavior: reduit ? 'instant' : 'smooth', block: 'start' });
+    $('#retour-carte').focus({ preventScroll: true });
+  });
   if (!modePublic) document.querySelectorAll('[data-contribuer]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); preparerContribution(etat.lieu?.id); }));
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && etat.region) { etat.lieu = null; selectionnerRegion(null); } });
+  // Échap ne vide pas la carte pendant une saisie, une lecture ou avec le menu ouvert.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !etat.region || $('#entete').classList.contains('ouvert')) return;
+    if (e.target.closest?.('input, select, textarea, #recit')) return;
+    revenirAuPays();
+  });
   miseEnScene();
+  $('#bouton-aide').addEventListener('click', lancerVisite);
+  visiteAuPremierPassage();
 }
 
 demarrer().catch((erreur) => {

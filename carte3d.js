@@ -80,6 +80,40 @@ export function creerCarte3D(hote, { regions, lieux, langueDe, surRegion, surLie
     volumes.push({ region, pivot, maille, dessus, bord, haut, cible: haut, delai: reduit ? 0 : i * 0.06, centre, taille: Math.max(taille.x, taille.z), phase: i * 0.7 });
   });
 
+  // Noms des régions : une étiquette posée sur chaque volume, toujours tournée vers la caméra.
+  const HAUTEUR_NOM = 26;
+  for (const v of volumes) {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true, opacity: 0, depthTest: false, depthWrite: false }));
+    sprite.renderOrder = 10;
+    const [x, y] = v.region.ancre ?? [v.centre.x + CX, v.centre.z - CY];
+    sprite.position.set(x - CX, 30, y + CY);
+    groupe.add(sprite);
+    v.nom = sprite;
+  }
+  function ecrireNoms() {
+    for (const v of volumes) {
+      const toile = document.createElement('canvas');
+      const ctx = toile.getContext('2d');
+      const police = '500 44px Lexend, system-ui, sans-serif';
+      ctx.font = police;
+      const l = Math.ceil(ctx.measureText(v.region.nom).width) + 24;
+      toile.width = l; toile.height = 64;
+      Object.assign(ctx, { font: police, textAlign: 'center', textBaseline: 'middle', lineJoin: 'round', lineWidth: 10, strokeStyle: 'rgba(10,21,48,.9)', fillStyle: '#fff' });
+      ctx.strokeText(v.region.nom, l / 2, 34);
+      ctx.fillText(v.region.nom, l / 2, 34);
+      const texture = new THREE.CanvasTexture(toile);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      v.nom.material.map?.dispose();
+      v.nom.material.map = texture;
+      v.nom.material.needsUpdate = true;
+      const h = HAUTEUR_NOM * (v.region.petite ? 0.65 : 1);
+      v.nom.scale.set((l / 64) * h, h, 1);
+    }
+  }
+  ecrireNoms();
+  // La police du site peut arriver après le premier dessin.
+  document.fonts?.load('500 44px Lexend').then(ecrireNoms).catch(() => {});
+
   // Feux des récits : halo, flamme et braises.
   const halo = texturePoint('rgba(255,244,214,1)', 'rgba(238,180,79,.75)');
   const halo2 = texturePoint('rgba(255,180,90,.9)', 'rgba(217,103,47,.35)');
@@ -211,6 +245,8 @@ export function creerCarte3D(hote, { regions, lieux, langueDe, surRegion, surLie
       const lueur = estChoisi ? 0.42 : estSurvol ? 0.2 : 0;
       v.dessus.emissiveIntensity = lissage(v.dessus.emissiveIntensity, lueur, 0.1);
       v.bord.material.opacity = selection && !estChoisi ? 0.18 : 0.55;
+      v.nom.position.y = v.pivot.scale.y + 18;
+      v.nom.material.opacity = lissage(v.nom.material.opacity, selection && !estChoisi ? 0.35 : entree, 0.1);
     }
     // Feux posés sur le dessus des régions.
     for (const f of feux) {

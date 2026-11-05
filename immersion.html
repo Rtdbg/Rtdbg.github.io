@@ -11,6 +11,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Lexend:wght@200..700&family=Noto+Serif:wght@400;600&display=swap">
   <link rel="stylesheet" href="/style.css">
+  <script>
+    /* Les commandes affichées suivent l'appareil, avant même le chargement de la 3D. */
+    document.documentElement.dataset.appareil = matchMedia('(pointer: coarse)').matches ? 'tactile' : 'clavier';
+  </script>
   <script type="module" src="/immersion.js"></script>
 </head>
 <body class="page-immersion">
@@ -22,7 +26,19 @@
       <p id="seuil-texte">Un village, la nuit, autour du feu. Marchez librement : la narration vient du feu et s’éloigne quand vous vous éloignez.</p>
       <button id="entrer" class="bouton feu grand" type="button">Entrer dans la veillée</button>
       <div id="seuil-contes" class="seuil-contes" role="group" aria-label="Choisir un récit"></div>
-      <p class="seuil-aide">Les récits français sont lus par une voix française de synthèse. Quand il existe, le texte suit la voix dans sa langue d’origine et en français, à l’écran comme dans le casque. Certains enregistrements n’ont pas encore de transcription. Son conseillé. Sur ordinateur : flèches ou ZQSD pour marcher, souris pour regarder. Sur téléphone : glissez pour regarder, maintenez le bouton Avancer pour marcher.</p>
+      <div class="commandes" id="commandes">
+        <h2>Comment se déplacer</h2>
+        <ul>
+          <li data-pour="clavier"><span>Marcher</span> <kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> ou les flèches</li>
+          <li data-pour="clavier"><span>Regarder</span> glissez avec la souris</li>
+          <li data-pour="tactile"><span>Marcher</span> maintenez le bouton Avancer</li>
+          <li data-pour="tactile"><span>Regarder</span> glissez le doigt sur l’écran</li>
+          <li data-pour="casque"><span>Casque</span> tournez la tête ; le joystick fait marcher</li>
+          <li><span>Écouter</span> la voix vient du feu : approchez-vous</li>
+        </ul>
+      </div>
+      <p id="seuil-poids" class="seuil-aide" aria-live="polite"></p>
+      <p class="seuil-aide">Les récits français sont lus par une voix française de synthèse. Quand il existe, le texte suit la voix dans sa langue d’origine et en français, à l’écran comme dans le casque. Certains enregistrements n’ont pas encore de transcription. Son conseillé.</p>
       <a class="seuil-retour" href="/">Revenir au site</a>
     </div>
   </div>
@@ -32,6 +48,8 @@
     <div class="hud-titre"><b id="hud-titre"></b><small id="hud-langue"></small></div>
     <button id="hud-son" class="hud-bouton" type="button" aria-label="Mettre en pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
     <button id="hud-vr" class="hud-bouton vr" type="button" hidden>Casque VR</button>
+    <button id="hud-aide" class="hud-bouton" type="button" aria-label="Afficher les commandes" aria-expanded="false" aria-controls="hud-commandes">?</button>
+    <div id="hud-commandes" class="hud-commandes" hidden></div>
     <button id="hud-avancer" class="hud-avancer" type="button" aria-pressed="false">Avancer</button>
     <div id="hud-phrase" class="hud-phrase" aria-live="off"><p id="hud-original"></p><p id="hud-francais" lang="fr"></p></div>
     <p id="hud-erreur" class="hud-erreur" role="alert" hidden></p>

@@ -27,6 +27,20 @@ function afficherChoix() {
     afficherChoix();
     peuplerAnimaux();
   }));
+  annoncerPoids();
+}
+/* Les données mobiles coûtent cher : on dit ce que la veillée va charger avant d'entrer. */
+async function annoncerPoids() {
+  const id = recit.id;
+  const fichiers = recit.film ? [`/films/${recit.film}`] : recit.audio?.length
+    ? [`/audio/${recit.audio[0].fichier}`]
+    : recit.etapes.map((_, i) => `/audio/fr-${recit.id}-${i + 1}.mp3`);
+  const tailles = await Promise.all(fichiers.map((url) => fetch(url, { method: 'HEAD' })
+    .then((r) => r.ok ? Number(r.headers.get('content-length')) || 0 : 0).catch(() => 0)));
+  const octets = tailles.reduce((total, taille) => total + taille, 0);
+  if (id !== recit.id) return;
+  // Environ 0,7 Mo de plus pour la bibliothèque 3D.
+  $('#seuil-poids').textContent = octets ? `Ce conte charge environ ${Math.ceil((octets + 700000) / 1e6)} Mo : une connexion wifi est conseillée.` : '';
 }
 afficherChoix();
 
@@ -441,8 +455,24 @@ rendu.setAnimationLoop(() => {
   rendu.render(scene, camera);
 });
 
+/* ---------- Aide : les commandes de l'appareil utilisé (choisi dans immersion.html) ---------- */
+const aide = $('#hud-aide'), commandes = $('#hud-commandes');
+let minuteurAide = null;
+function montrerCommandes(ouvert) {
+  clearTimeout(minuteurAide);
+  commandes.hidden = !ouvert;
+  aide.setAttribute('aria-expanded', String(ouvert));
+  aide.setAttribute('aria-label', ouvert ? 'Masquer les commandes' : 'Afficher les commandes');
+}
+aide.addEventListener('click', () => montrerCommandes(commandes.hidden));
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && !commandes.hidden) montrerCommandes(false); });
+
 /* ---------- Entrée ---------- */
 $('#entrer').addEventListener('click', () => {
+  // Les commandes du seuil restent consultables dans la veillée, et s'affichent quelques secondes à l'arrivée.
+  commandes.innerHTML = $('#commandes').innerHTML;
+  montrerCommandes(true);
+  minuteurAide = setTimeout(() => montrerCommandes(false), 7000);
   $('#seuil').classList.add('part');
   setTimeout(() => $('#seuil').remove(), 900);
   $('#hud').hidden = false;
@@ -462,7 +492,7 @@ $('#hud-son').addEventListener('click', () => {
   $('#hud-son').innerHTML = paused ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5V19.5L20 12Z" fill="currentColor"/></svg>';
 });
 const vr = $('#hud-vr');
-if (navigator.xr) navigator.xr.isSessionSupported('immersive-vr').then((ok) => { vr.hidden = !ok; }).catch(() => {});
+if (navigator.xr) navigator.xr.isSessionSupported('immersive-vr').then((ok) => { vr.hidden = !ok; document.body.classList.toggle('casque-possible', ok); }).catch(() => {});
 let session = null;
 vr.addEventListener('click', async () => {
   if (session) { session.end(); return; }

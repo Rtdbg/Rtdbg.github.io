@@ -53,8 +53,9 @@
     </a>
     <button class="menu-bouton" id="menu-bouton" type="button" aria-expanded="false" aria-controls="navigation"><span class="visuel-cache">Menu</span><i></i><i></i></button>
     <nav id="navigation" aria-label="Navigation principale">
-      <a href="#carte">La carte</a><a href="/immersion.html" data-page>La veillée en 3D</a><a href="#recueil">Le recueil</a><a href="#sagesse">Paroles de sagesse</a><a href="/sources.html" data-page>Sources</a>
+      <a href="#carte">La carte</a><a href="/immersion.html" data-page>La veillée en 3D</a><a href="#recueil">Le recueil</a><a href="#sagesse">Paroles de sagesse</a><a href="/guide.html" data-page>Guide</a><a href="/sources.html" data-page>Sources</a>
     </nav>
+    <button class="aide-bouton" id="bouton-aide" type="button" aria-label="Aide : lancer la visite guidée">?</button>
   </header>
 
   <main>
@@ -79,7 +80,7 @@
 
         <div class="vue-carte">
           <div class="scene-carte" id="scene">
-            <svg id="carte-svg" viewBox="0 0 960 690" aria-label="Carte des 17 régions du Burkina Faso ; sélection au clic ou au clavier"><g id="formes-regions"></g><g id="points-lieux"></g></svg>
+            <svg id="carte-svg" viewBox="0 0 960 690" aria-label="Carte des 17 régions du Burkina Faso ; sélection au clic ou au clavier"><g id="formes-regions"></g><g id="noms-regions" aria-hidden="true"></g><g id="points-lieux"></g></svg>
           </div>
           <div class="hologramme" id="hologramme" aria-live="polite" hidden></div>
           <div class="carte-pied">
@@ -103,6 +104,7 @@
     </section>
 
     <section id="recit" class="lecture" aria-labelledby="titre-recit" hidden>
+      <button id="retour-region" class="bouton fin retour-region" type="button">← Retour à la carte</button>
       <h2 id="titre-recit" class="lecture-titre"></h2>
       <div id="zone-recit" class="zone-recit"></div>
     </section>
@@ -122,7 +124,7 @@
     <section id="recueil" class="recueil" aria-labelledby="titre-recueil">
       <div class="recueil-tete">
         <h2 id="titre-recueil" data-mots>Le recueil</h2>
-        <p>Dix-neuf récits, du conte de veillée à l’histoire du pays. Chaque fiche dit d’où vient le récit et ce qu’on en sait.</p>
+        <p>Vingt-deux récits, du conte de veillée à l’histoire du pays. Chaque fiche dit d’où vient le récit et ce qu’on en sait.</p>
       </div>
 
       <div class="filtres" id="filtres" role="group" aria-label="Filtrer par genre ou par langue"></div>
@@ -173,6 +175,7 @@
       <h2 data-mots>Merci à celles et ceux qui ont transmis</h2>
       <p>Notre site s’appuie sur des voix, des images et des recherches trouvées en ligne. Leurs auteurs sont nommés sur la page des sources.</p>
       <a class="bouton feu aimant" href="/sources.html" data-page>Voir toutes les sources</a>
+      <a class="bouton fin pied-guide" href="/guide.html" data-page>Lire le guide d’utilisation</a>
     </div>
     <ul class="credits-courts">
       <li><b>Mooré Burkina Faso</b>voix et textes des contes</li>
@@ -181,6 +184,15 @@
       <li><b>IGB et OCHA</b>carte des 17 régions</li>
       <li><b>UNESCO</b>Loropéni et Tiébélé</li>
     </ul>
+    <div class="groupe">
+      <h3>Notre groupe</h3>
+      <ul>
+        <li><b>SOMBIE/SOME</b> Nwintomé Roseline</li>
+        <li><b>BANDE</b> Hamidou</li>
+        <li><b>TIENDREBEOGO</b> Tegwende Ange Michel Romaric</li>
+        <li><b>TIONON</b> Filwende Michael</li>
+      </ul>
+    </div>
     <p class="mention">Les voix du Faso, projet Technologies Web et Multimédia, 2026. Illustrations, couvertures, 3D et montages créés par notre groupe.</p>
   </footer>
   <a class="haut-page" id="haut-page" href="#carte" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19 V5 M6 11 L12 5 L18 11"/></svg></a>
